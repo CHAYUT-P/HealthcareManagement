@@ -1,0 +1,259 @@
+.signin-page {
+  padding: 0rem 2rem;
+  padding-top: 6rem;
+  padding-bottom: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  width: 100%;
+  align-items: center;
+}
+
+.auth-card {
+  background: var(--surface-container-lowest);
+  border-radius: var(--radius-2xl);
+  padding: 3rem;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--outline-variant);
+  width: 100%;
+  margin: 0 auto;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.auth-logo {
+  width: 48px;
+  height: 48px;
+  background: var(--primary-fixed);
+  color: var(--primary);
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+.auth-header h1 {
+  font-size: 2rem;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+}
+
+.auth-header p {
+  color: var(--on-surface-variant);
+  font-size: 1rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 1rem;
+  color: var(--on-surface-variant);
+  pointer-events: none;
+}
+
+.input-wrapper input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-lg);
+  font-size: 1rem;
+  background: var(--surface);
+  transition: all 0.2s ease;
+}
+
+.input-wrapper input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--surface-container-lowest);
+  box-shadow: 0 0 0 3px rgba(47, 99, 120, 0.1);
+}
+
+.password-toggle {
+  position: absolute;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: var(--on-surface-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.password-toggle:hover {
+  color: var(--primary);
+}
+
+.forgot-password {
+  text-align: right;
+}
+
+.forgot-password a {
+  font-size: 0.85rem;
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.btn-auth {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  font-size: 1.1rem;
+  margin-top: 1rem;
+}
+
+.auth-footer {
+  margin-top: 2rem;
+  text-align: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--outline-variant);
+}
+
+.auth-footer p {
+  font-size: 0.95rem;
+  color: var(--on-surface-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-text {
+  background: none;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0;
+}
+
+.btn-text:hover {
+  text-decoration: underline;
+}
+
+.auth-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.info-item {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+.info-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.info-item h4 {
+  font-size: 1.1rem;
+  color: var(--on-surface);
+  margin-bottom: 0.25rem;
+}
+
+.info-item p {
+  color: var(--on-surface-variant);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.auth-success-card {
+  background: var(--surface-container-lowest);
+  border-radius: var(--radius-2xl);
+  padding: 4rem 2rem;
+  text-align: center;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--outline-variant);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.success-icon {
+  margin-bottom: 2rem;
+}
+
+.auth-success-card h2 {
+  font-size: 2rem;
+  color: var(--primary);
+  margin-bottom: 1rem;
+}
+
+.auth-success-card p {
+  color: var(--on-surface-variant);
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 992px) {
+  .auth-wrapper {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+  
+  .auth-card {
+    margin: 0 auto;
+  }
+  
+  .auth-info {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 576px) {
+  .signin-page {
+    padding: 2rem 1rem;
+  }
+  
+  .auth-card {
+    padding: 2rem 1.5rem;
+  }
+}

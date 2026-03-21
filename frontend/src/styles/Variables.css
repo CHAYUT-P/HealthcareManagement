@@ -1,0 +1,84 @@
+:root {
+  /* Colors */
+  --primary: #2f6378;
+  --primary-light: #4a7c92;
+  --primary-fixed: #bde9ff;
+  --on-primary: #ffffff;
+  --secondary: #3d6655;
+  --secondary-container: #bfedd6;
+  --on-secondary-container: #254e3e;
+  --surface: #f7fafb;
+  --surface-container-low: #f1f4f5;
+  --surface-container-lowest: #ffffff;
+  --on-surface: #181c1d;
+  --on-surface-variant: #41484c;
+  --outline-variant: #c0c7cc;
+  --background: #f7fafb;
+  
+  /* Typography */
+  --font-headline: 'Manrope', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  
+  /* Spacing & Borders */
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+  --max-width: 1280px;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--background);
+  color: var(--on-surface);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-headline);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.2s ease;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* Material Icons Helper */
+.material-icons, .material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
