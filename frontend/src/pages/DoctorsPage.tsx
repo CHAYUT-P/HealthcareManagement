@@ -1,4 +1,4 @@
-import React from 'react';
+
 import './DoctorsPage.css';
 
 const doctors = [

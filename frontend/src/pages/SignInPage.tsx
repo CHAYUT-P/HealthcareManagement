@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff, LogIn, UserPlus, ArrowRight, CheckCircle2, Phone } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, UserPlus, ArrowRight, CheckCircle2, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './SignInPage.css';
 
@@ -13,7 +13,6 @@ const SignInPage = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const { login } = useAuth();
-  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     email: '',
@@ -21,10 +20,11 @@ const SignInPage = () => {
     confirmPassword: '',
     firstName: '',
     lastName: '',
-    phone: ''
+    phone: '',
+    role: 'PATIENT' as const
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -56,7 +56,9 @@ const SignInPage = () => {
           lastName: formData.lastName,
           email: formData.email,
           phone: formData.phone,
-          password: formData.password
+          password: formData.password,
+          role: formData.role,
+          status: 'ACTIVE'
         });
         localStorage.setItem('healthcare_users_list', JSON.stringify(users));
 
@@ -66,26 +68,24 @@ const SignInPage = () => {
     } else {
       setIsLoading(true);
 
-      setTimeout(() => {
-        const users = JSON.parse(localStorage.getItem('healthcare_users_list') || '[]');
-        const validUser = users.find((u: any) => u.email === formData.email && u.password === formData.password);
-
-        if (validUser) {
-          login({
-            id: validUser.id,
-            firstName: validUser.firstName,
-            lastName: validUser.lastName,
-            email: validUser.email,
-            phone: validUser.phone
+      setTimeout(async () => {
+        try {
+          const response = await fetch('http://localhost:8000/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ username: formData.email, password: formData.password })
           });
+          if (!response.ok) throw new Error("Invalid username/email or password");
+          const data = await response.json();
+
+          login(data.access_token, data.role);
           setIsLoading(false);
           setIsSuccess(true);
-          setTimeout(() => navigate('/'), 1500);
-        } else {
-          setErrorMsg("Invalid email or password");
+        } catch (e: any) {
+          setErrorMsg(e.message || "Invalid credentials");
           setIsLoading(false);
         }
-      }, 1000);
+      }, 500);
     }
   };
 
@@ -204,14 +204,14 @@ const SignInPage = () => {
             </AnimatePresence>
 
             <div className="form-group">
-              <label htmlFor="email">Email Address</label>
+              <label htmlFor="email">Email or Username</label>
               <div className="input-wrapper">
                 <Mail className="input-icon" size={18} />
                 <input
-                  type="email"
+                  type="text"
                   id="email"
                   name="email"
-                  placeholder="john@example.com"
+                  placeholder="nurse1@example.com"
                   required
                   value={formData.email}
                   onChange={handleInputChange}
@@ -273,6 +273,25 @@ const SignInPage = () => {
                       >
                         {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
+                    </div>
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                    <label htmlFor="role">Account Role (For Demo Purposes)</label>
+                    <div className="input-wrapper">
+                      <select
+                        id="role"
+                        name="role"
+                        required={isSignUp}
+                        value={formData.role}
+                        onChange={handleInputChange}
+                        style={{ width: '100%', padding: '0.75rem 1rem', paddingLeft: '1rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--outline-variant)', background: 'var(--surface)' }}
+                      >
+                        <option value="PATIENT">Patient</option>
+                        <option value="ADMIN">Administrator</option>
+                        <option value="NURSE">Nurse</option>
+                        <option value="DOCTOR">Doctor</option>
+                      </select>
                     </div>
                   </div>
                 </motion.div>
