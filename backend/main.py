@@ -8,7 +8,7 @@ from database import create_db_and_tables, get_session
 from models import User
 from auth import verify_password, create_access_token, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES
 from datetime import timedelta
-from routes import patients, nurse, doctor
+from routes import patients, nurse, doctor, admin
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -51,10 +51,19 @@ app.add_middleware(
 app.include_router(patients.router)
 app.include_router(nurse.router)
 app.include_router(doctor.router)
+app.include_router(admin.router)
 
 @app.post("/token")
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_session)):
     user = session.exec(select(User).where(User.username == form_data.username)).first()
+    
+    # Fallback to check if the input is an email associated with a Patient
+    if not user:
+        from models import Patient
+        patient = session.exec(select(Patient).where(Patient.email == form_data.username)).first()
+        if patient and patient.national_id:
+            user = session.exec(select(User).where(User.username == patient.national_id)).first()
+
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

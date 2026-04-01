@@ -22,6 +22,9 @@ class ClinicalNoteCreate(BaseModel):
     prescriptions: Optional[str] = None
     lab_orders: Optional[str] = None
     prescription_items: Optional[List[PrescriptionItemCreate]] = []
+    follow_up_date: Optional[str] = None
+    follow_up_time: Optional[str] = None
+    follow_up_note: Optional[str] = None
 
 @router.get("/current-patient")
 def get_current_patient(session: Session = Depends(get_session), current_user: User = Depends(require_role(["doctor"]))):
@@ -52,7 +55,8 @@ def add_consultation(
     if not visit or visit.assigned_doctor_id != current_user.id:
         raise HTTPException(status_code=404, detail="Visit not found or not assigned to you")
     
-    note_data = note_in.dict(exclude={"prescription_items"})
+    # Extract and remove follow-up fields from note_data
+    note_data = note_in.dict(exclude={"prescription_items", "follow_up_date", "follow_up_time", "follow_up_note"})
     note = ClinicalNote(visit_id=visit_id, **note_data)
     session.add(note)
     visit.status = "PENDING_PAYMENT"
@@ -73,6 +77,23 @@ def add_consultation(
                 quantity=item.quantity
             )
             session.add(rx_item)
+            
+    # Process follow-up appointment
+    if note_in.follow_up_date and note_in.follow_up_time:
+        from models import Appointment
+        appt = Appointment(
+            patient_id=visit.patient_id,
+            visit_id=visit.id,
+            date=note_in.follow_up_date,
+            time=note_in.follow_up_time,
+            service="Doctor Follow-up",
+            doctor_name=current_user.username,
+            details=note_in.follow_up_note,
+            is_doctor_scheduled=True,
+            appointment_note=note_in.follow_up_note,
+            created_by_id=current_user.id
+        )
+        session.add(appt)
             
     session.commit()
     session.refresh(note)

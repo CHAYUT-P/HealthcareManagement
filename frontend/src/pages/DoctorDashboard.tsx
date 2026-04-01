@@ -16,6 +16,8 @@ export const DoctorDashboard: React.FC = () => {
     });
 
     const [prescriptionItems, setPrescriptionItems] = useState<{ medicine_name: string; instructions: string; quantity: number }[]>([]);
+    
+    const [followUp, setFollowUp] = useState({ date: '', time: '', note: '' });
 
     useEffect(() => {
         fetchCurrentPatient();
@@ -45,7 +47,13 @@ export const DoctorDashboard: React.FC = () => {
             const res = await fetch(`http://localhost:8000/doctor/visits/${currentData.visit.id}/consult`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ ...clinicalNote, prescription_items: prescriptionItems })
+                body: JSON.stringify({ 
+                    ...clinicalNote, 
+                    prescription_items: prescriptionItems,
+                    follow_up_date: followUp.date || undefined,
+                    follow_up_time: followUp.time || undefined,
+                    follow_up_note: followUp.note || undefined
+                })
             });
             if (res.ok) {
                 setCurrentData(null);
@@ -56,6 +64,7 @@ export const DoctorDashboard: React.FC = () => {
                     lab_orders: ''
                 });
                 setPrescriptionItems([]);
+                setFollowUp({ date: '', time: '', note: '' });
                 alert("Consultation Complete. Patient moved to Pharmacy/Billing.");
             }
         } catch (e) {
@@ -209,6 +218,24 @@ export const DoctorDashboard: React.FC = () => {
                                     </div>
                                 ))}
                                 {prescriptionItems.length === 0 && <p style={{ color: 'var(--outline)', fontStyle: 'italic', fontSize: '0.95rem' }}>No medications added. Click "+ Add Medication" to prescribe items.</p>}
+                            </div>
+
+                            <div style={{ marginTop: '2rem', borderTop: '1px solid var(--outline-variant)', paddingTop: '1.5rem' }}>
+                                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--on-surface)', marginBottom: '1rem' }}>Schedule Follow-up (Optional)</h3>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1.5rem', marginBottom: '1rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.95rem', color: 'var(--on-surface-variant)', marginBottom: '0.5rem' }}>Follow-up Date</label>
+                                        <input type="date" value={followUp.date} onChange={e => setFollowUp({...followUp, date: e.target.value})} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.95rem', color: 'var(--on-surface-variant)', marginBottom: '0.5rem' }}>Follow-up Time</label>
+                                        <input type="time" value={followUp.time} onChange={e => setFollowUp({...followUp, time: e.target.value})} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.95rem', color: 'var(--on-surface-variant)', marginBottom: '0.5rem' }}>Reason for Follow-up</label>
+                                    <input type="text" value={followUp.note} onChange={e => setFollowUp({...followUp, note: e.target.value})} placeholder="e.g. Check lab results, remove stitches" style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} />
+                                </div>
                             </div>
 
                             <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid var(--outline-variant)' }}>

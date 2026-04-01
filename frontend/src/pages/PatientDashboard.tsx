@@ -248,8 +248,9 @@ const PatientDashboard = () => {
                         ) : (
                             <div style={{ display: 'grid', gap: '1rem' }}>
                                 {appointments.map(a => (
-                                    <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem', border: '1px solid var(--primary-container)', borderRadius: 'var(--radius-lg)', background: 'var(--surface)' }}>
+                                    <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem', border: `1px solid ${a.is_doctor_scheduled ? '#86efac' : 'var(--primary-container)'}`, borderRadius: 'var(--radius-lg)', background: a.is_doctor_scheduled ? '#f0fdf4' : 'var(--surface)' }}>
                                         <div>
+                                            {a.is_doctor_scheduled && <span style={{ display: 'inline-block', background: '#dcfce7', color: '#166534', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>👩‍⚕️ Doctor's Appointment (หมอนัดตรวจ)</span>}
                                             <strong style={{ fontSize: '1.1rem', color: 'var(--on-surface)', display: 'block' }}>{a.service}</strong>
                                             {a.details && <span style={{ color: 'var(--on-surface-variant)', display: 'block', fontSize: '0.9rem', marginTop: '0.25rem' }}>"{a.details}"</span>}
                                         </div>
@@ -297,6 +298,13 @@ const PatientDashboard = () => {
                                                                 ))}
                                                             </ul>
                                                         )}
+                                                    </div>
+                                                )}
+                                                {h.next_appointment && (
+                                                    <div style={{ marginTop: '0.5rem', background: '#eff6ff', borderLeft: '4px solid #3b82f6', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+                                                        <strong style={{ color: '#1d4ed8', fontSize: '0.9rem', display: 'block', marginBottom: '0.25rem' }}>Next Appointment Scheduled</strong>
+                                                        <span style={{ color: '#1e3a8a', display: 'block', fontWeight: 600 }}>{h.next_appointment.date} at {h.next_appointment.time}</span>
+                                                        <span style={{ color: '#3b82f6', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>Reason: {h.next_appointment.note}</span>
                                                     </div>
                                                 )}
                                                 {(h.grand_total !== undefined && h.grand_total > 0) && (

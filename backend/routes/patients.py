@@ -100,6 +100,12 @@ def get_my_history(session: Session = Depends(get_session), current_user: User =
     history = []
     for v in visits:
         rx = v.prescription
+        
+        # Determine if there is a correlated follow-up appointment
+        next_appointment = session.exec(
+            select(Appointment).where(Appointment.visit_id == v.id)
+        ).first()
+
         history.append({
             "id": v.id,
             "date": v.created_at.isoformat(),
@@ -112,7 +118,12 @@ def get_my_history(session: Session = Depends(get_session), current_user: User =
             "grand_total": (rx.total_amount if rx and rx.total_amount else 0) + (v.treatment_fee or 0),
             "prescription_items": [
                 {"name": item.medicine_name, "quantity": item.quantity} for item in rx.items
-            ] if rx else []
+            ] if rx else [],
+            "next_appointment": {
+                "date": next_appointment.date,
+                "time": next_appointment.time,
+                "note": next_appointment.appointment_note
+            } if next_appointment else None
         })
     return history
 
@@ -120,6 +131,7 @@ class PatientRegister(BaseModel):
     national_id: str
     password: str
     name: str
+    email: str
 
 @router.post("/register")
 def register_patient(req: PatientRegister, session: Session = Depends(get_session)):
@@ -146,11 +158,17 @@ def register_patient(req: PatientRegister, session: Session = Depends(get_sessio
     if not existing_patient:
         new_patient = Patient(
             name=req.name,
+            email=req.email,
             age=0,
             gender="Not specified",
             national_id=req.national_id
         )
         session.add(new_patient)
+    else:
+        # Update existing record with email if provided
+        if not existing_patient.email and req.email:
+            existing_patient.email = req.email
+            session.add(existing_patient)
     
     session.commit()
     return {"message": "Account created successfully", "linked": linked}
@@ -210,6 +228,10 @@ def get_patient_history(patient_id: int, session: Session = Depends(get_session)
     history = []
     for v in visits:
         rx = v.prescription
+        next_appointment = session.exec(
+            select(Appointment).where(Appointment.visit_id == v.id)
+        ).first()
+
         history.append({
             "id": v.id,
             "date": v.created_at.isoformat(),
@@ -222,7 +244,12 @@ def get_patient_history(patient_id: int, session: Session = Depends(get_session)
             "grand_total": (rx.total_amount if rx and rx.total_amount else 0) + (v.treatment_fee or 0),
             "prescription_items": [
                 {"name": item.medicine_name, "quantity": item.quantity} for item in rx.items
-            ] if rx else []
+            ] if rx else [],
+            "next_appointment": {
+                "date": next_appointment.date,
+                "time": next_appointment.time,
+                "note": next_appointment.appointment_note
+            } if next_appointment else None
         })
     return history
 

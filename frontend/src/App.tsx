@@ -3,7 +3,6 @@ import './styles/Variables.css';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import ServicesPage from './pages/ServicesPage';
-import DoctorsPage from './pages/DoctorsPage';
 import ContactPage from './pages/ContactPage';
 import AppointmentPage from './pages/AppointmentPage';
 import SignInPage from './pages/SignInPage'
@@ -27,7 +26,6 @@ export default function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/services" element={<ServicesPage />} />
-              <Route path="/doctors" element={<DoctorsPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/appointment" element={<AppointmentPage />} />
               <Route path="/signin" element={<SignInPage />} />

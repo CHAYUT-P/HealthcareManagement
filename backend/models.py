@@ -7,6 +7,7 @@ class User(SQLModel, table=True):
     username: str = Field(index=True, unique=True)
     hashed_password: str
     role: str  # 'nurse', 'doctor', or 'PATIENT'
+    status: str = Field(default="ACTIVE")  # 'ACTIVE', 'INACTIVE', 'SUSPENDED'
     national_id: Optional[str] = Field(default=None, index=True)  # For linking patients
 
 class Patient(SQLModel, table=True):
@@ -112,4 +113,11 @@ class Appointment(SQLModel, table=True):
     doctor_name: Optional[str] = Field(default="Pending")
     details: Optional[str] = None
     status: str = Field(default="scheduled") # 'scheduled', 'completed', 'cancelled'
+    
+    # Follow-up fields
+    is_doctor_scheduled: bool = Field(default=False)
+    appointment_note: Optional[str] = None
+    created_by_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    visit_id: Optional[int] = Field(default=None, foreign_key="visit.id")
+    
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

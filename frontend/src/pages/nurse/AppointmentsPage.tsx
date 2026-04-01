@@ -7,6 +7,8 @@ export const AppointmentsPage: React.FC = () => {
     const [appointments, setAppointments] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [dateFilter, setDateFilter] = useState('');
+    const [sortAsc, setSortAsc] = useState(true);
 
     useEffect(() => {
         fetchAppointments();
@@ -33,11 +35,26 @@ export const AppointmentsPage: React.FC = () => {
         }
     };
 
-    const filteredAppointments = appointments.filter(a => 
-        a.patient_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        a.service?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        a.details?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredAppointments = appointments.filter(a => {
+        const matchesSearch = a.patient_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            a.service?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            a.details?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesDate = dateFilter ? a.date === dateFilter : true;
+        return matchesSearch && matchesDate;
+    }).sort((a, b) => {
+        // Fallback for sorting if time/date is missing
+        const aTime = a.date && a.time ? new Date(`${a.date}T${a.time}`).getTime() : 0;
+        const bTime = b.date && b.time ? new Date(`${b.date}T${b.time}`).getTime() : 0;
+        return sortAsc ? aTime - bTime : bTime - aTime;
+    });
+
+    const setTodayDate = () => {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        setDateFilter(`${yyyy}-${mm}-${dd}`);
+    }
 
     return (
         <div>
@@ -47,22 +64,53 @@ export const AppointmentsPage: React.FC = () => {
             </header>
 
             <div style={{ background: 'var(--surface-container-lowest)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-                <div style={{ position: 'relative', marginBottom: '2rem' }}>
-                    <Search className="input-icon" size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }} />
-                    <input
-                        type="text"
-                        placeholder="Search by Patient, Doctor, or Service..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '1rem 1rem 1rem 3rem',
-                            borderRadius: 'var(--radius-lg)',
-                            border: '1px solid var(--outline-variant)',
-                            fontSize: '1rem',
-                            background: 'var(--surface)'
-                        }}
-                    />
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
+                    <div style={{ position: 'relative', flex: '1', minWidth: '300px' }}>
+                        <Search className="input-icon" size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }} />
+                        <input
+                            type="text"
+                            placeholder="Search by Patient, Doctor, or Service..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '1rem 1rem 1rem 3rem',
+                                borderRadius: 'var(--radius-lg)',
+                                border: '1px solid var(--outline-variant)',
+                                fontSize: '1rem',
+                                background: 'var(--surface)'
+                            }}
+                        />
+                    </div>
+                    
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <input 
+                            type="date"
+                            value={dateFilter}
+                            onChange={(e) => setDateFilter(e.target.value)}
+                            style={{ padding: '0.9rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--outline-variant)', fontSize: '1rem', background: 'var(--surface)' }}
+                        />
+                        <button 
+                            onClick={setTodayDate}
+                            style={{ padding: '0.9rem 1.5rem', borderRadius: 'var(--radius-lg)', background: 'var(--primary-container)', color: 'var(--on-primary-container)', border: 'none', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                            Today
+                        </button>
+                        { dateFilter && (
+                            <button 
+                                onClick={() => setDateFilter('')}
+                                style={{ padding: '0.9rem', borderRadius: 'var(--radius-lg)', background: 'transparent', color: 'var(--on-surface-variant)', border: '1px solid var(--outline-variant)', fontWeight: 600, cursor: 'pointer' }}
+                            >
+                                Clear
+                            </button>
+                        )}
+                        <button 
+                            onClick={() => setSortAsc(!sortAsc)}
+                            style={{ padding: '0.9rem', borderRadius: 'var(--radius-lg)', background: 'var(--surface)', color: 'var(--on-surface-variant)', border: '1px solid var(--outline-variant)', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                        >
+                            Date Sorting {sortAsc ? '↑' : '↓'}
+                        </button>
+                    </div>
                 </div>
 
                 {isLoading ? (
@@ -88,7 +136,7 @@ export const AppointmentsPage: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredAppointments.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).map(a => (
+                                {filteredAppointments.map(a => (
                                     <tr key={a.id} style={{ borderBottom: '1px solid var(--outline-variant)' }}>
                                         <td style={{ padding: '1rem' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>

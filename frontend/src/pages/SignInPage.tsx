@@ -51,6 +51,7 @@ const SignInPage = () => {
             national_id: formData.citizenId,
             password: formData.password,
             name: formData.fullName || 'Patient',
+            email: formData.email,
           })
         });
         if (!response.ok) {
@@ -200,23 +201,21 @@ const SignInPage = () => {
               )}
             </AnimatePresence>
 
-            {!isSignUp && (
-              <div className="form-group">
-                <label htmlFor="email">Email / Citizen ID</label>
-                <div className="input-wrapper">
-                  <Mail className="input-icon" size={18} />
-                  <input
-                    type="text"
-                    id="email"
-                    name="email"
-                    placeholder="nurse1@example.com or Citizen ID"
-                    required={!isSignUp}
-                    value={formData.email}
-                    onChange={handleInputChange}
-                  />
-                </div>
+            <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+              <label htmlFor="email">{isSignUp ? 'Email Address' : 'Email / Citizen ID'}</label>
+              <div className="input-wrapper">
+                <Mail className="input-icon" size={18} />
+                <input
+                  type={isSignUp ? "email" : "text"}
+                  id="email"
+                  name="email"
+                  placeholder={isSignUp ? "your@email.com" : "nurse1@example.com or Citizen ID"}
+                  required={!isSignUp}
+                  value={formData.email}
+                  onChange={handleInputChange}
+                />
               </div>
-            )}
+            </div>
 
             <div className="form-group">
               <label htmlFor="password">Password</label>

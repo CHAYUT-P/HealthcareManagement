@@ -1,31 +1,57 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
-import { Shield } from 'lucide-react';
+import { Shield, Search } from 'lucide-react';
 
 const AdminDashboard = () => {
-    const { user } = useAuth();
+    const { user, token } = useAuth();
     const [usersList, setUsersList] = useState<any[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        const data = JSON.parse(localStorage.getItem('healthcare_users_list') || '[]');
-        setUsersList(data);
-    }, []);
+        fetchUsers();
+    }, [searchTerm, token]);
+
+    const fetchUsers = async () => {
+        try {
+            const url = searchTerm ? `http://localhost:8000/admin/users?search=${encodeURIComponent(searchTerm)}` : 'http://localhost:8000/admin/users';
+            const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+            if (res.ok) setUsersList(await res.json());
+        } catch (e) {
+            console.error(e);
+        }
+    };
 
     if (!user || user.role !== 'ADMIN') {
         return <Navigate to="/" />;
     }
 
-    const handleStatusChange = (userId: string, status: string) => {
-        const updated = usersList.map(u => u.id === userId ? { ...u, status } : u);
-        setUsersList(updated);
-        localStorage.setItem('healthcare_users_list', JSON.stringify(updated));
+    const handleStatusChange = async (userId: string, status: string) => {
+        try {
+            const res = await fetch(`http://localhost:8000/admin/users/${userId}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ status })
+            });
+            if (res.ok) {
+                const updated = usersList.map(u => u.id === userId ? { ...u, status } : u);
+                setUsersList(updated);
+            }
+        } catch (e) {}
     };
 
-    const handleRoleChange = (userId: string, role: string) => {
-        const updated = usersList.map(u => u.id === userId ? { ...u, role } : u);
-        setUsersList(updated);
-        localStorage.setItem('healthcare_users_list', JSON.stringify(updated));
+    const handleRoleChange = async (userId: string, role: string) => {
+        try {
+            const res = await fetch(`http://localhost:8000/admin/users/${userId}/role`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ role })
+            });
+            if (res.ok) {
+                const updated = usersList.map(u => u.id === userId ? { ...u, role } : u);
+                setUsersList(updated);
+            }
+        } catch (e) {}
     };
 
     return (
@@ -36,8 +62,22 @@ const AdminDashboard = () => {
             </div>
 
             <div style={{ background: 'var(--surface-container-lowest)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', overflowX: 'auto' }}>
-                <h2>Account Management</h2>
-                <p style={{ color: 'var(--on-surface-variant)', marginBottom: '1.5rem' }}>Manage system roles and access status for all registered users.</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div>
+                        <h2>Account Management</h2>
+                        <p style={{ color: 'var(--on-surface-variant)' }}>Manage system roles and access status for all registered users.</p>
+                    </div>
+                    <div style={{ position: 'relative', minWidth: '300px' }}>
+                        <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }} />
+                        <input
+                            type="text"
+                            placeholder="Search accounts..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            style={{ width: '100%', padding: '0.75rem 1rem 0.75rem 2.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)', background: 'var(--surface)' }}
+                        />
+                    </div>
+                </div>
 
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
                     <thead>

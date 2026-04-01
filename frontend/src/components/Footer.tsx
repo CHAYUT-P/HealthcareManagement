@@ -10,10 +10,10 @@ const Footer = () => {
           <div className="footer-brand">
             <Link to="/" className="logo" style={{ marginBottom: '1.5rem' }}>
               <span className="material-icons logo-icon" style={{ fontSize: '1.5rem' }}>spa</span>
-              <span style={{ fontSize: '1.125rem' }}>Restorative Canvas</span>
+              <span style={{ fontSize: '1.125rem' }}>Healthcare Clinic</span>
             </Link>
             <p>A sanctuary of digital calm for your healthcare needs.</p>
-            <p className="emergency">Emergency: 1169</p>
+            <p className="emergency">Emergency: 1234</p>
           </div>
           
           <div className="footer-links">
@@ -21,7 +21,6 @@ const Footer = () => {
             <nav className="footer-nav">
               <Link to="/">Home</Link>
               <Link to="/services">Our Services</Link>
-              <Link to="/doctors">Find a Doctor</Link>
             </nav>
           </div>
           
@@ -29,8 +28,6 @@ const Footer = () => {
             <h4>Support</h4>
             <nav className="footer-nav">
               <Link to="/contact">Contact</Link>
-              <Link to="/privacy">Privacy Policy</Link>
-              <Link to="/portal">Patient Portal</Link>
             </nav>
           </div>
           
@@ -47,7 +44,7 @@ const Footer = () => {
         </div>
         
         <div className="footer-bottom">
-          <p>© 2024 Restorative Canvas Clinic. All rights reserved.</p>
+          <p>© 2024 Healthcare Clinic. All rights reserved.</p>
         </div>
       </div>
     </footer>
