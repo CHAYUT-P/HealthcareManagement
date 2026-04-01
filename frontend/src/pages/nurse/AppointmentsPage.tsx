@@ -36,7 +36,7 @@ export const AppointmentsPage: React.FC = () => {
     const filteredAppointments = appointments.filter(a => 
         a.patient_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         a.service?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        a.doctor_name?.toLowerCase().includes(searchTerm.toLowerCase())
+        a.details?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -83,7 +83,7 @@ export const AppointmentsPage: React.FC = () => {
                                     <th style={{ padding: '1rem' }}>Patient</th>
                                     <th style={{ padding: '1rem' }}>Date & Time</th>
                                     <th style={{ padding: '1rem' }}>Service</th>
-                                    <th style={{ padding: '1rem' }}>Doctor</th>
+                                    <th style={{ padding: '1rem' }}>Reason for Visit</th>
                                     <th style={{ padding: '1rem' }}>Status</th>
                                 </tr>
                             </thead>
@@ -109,7 +109,7 @@ export const AppointmentsPage: React.FC = () => {
                                             </div>
                                         </td>
                                         <td style={{ padding: '1rem' }}>{a.service}</td>
-                                        <td style={{ padding: '1rem' }}>{a.doctor_name}</td>
+                                        <td style={{ padding: '1rem', maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={a.details}>{a.details || '-'}</td>
                                         <td style={{ padding: '1rem' }}>
                                             <span style={{ 
                                                 padding: '0.4rem 0.8rem', borderRadius: 'var(--radius-full)', fontSize: '0.85rem', fontWeight: 600,

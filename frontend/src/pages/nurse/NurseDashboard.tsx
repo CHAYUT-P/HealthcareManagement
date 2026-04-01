@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { SearchPage } from './SearchPage';
 import { QueuePage } from './QueuePage';
 import { AppointmentsPage } from './AppointmentsPage';
-import { Search, Activity, Calendar } from 'lucide-react';
+import { BillingPage } from './BillingPage';
+import { Search, Activity, Calendar, Pill } from 'lucide-react';
 
 export const NurseDashboard: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'search' | 'queue' | 'appointments'>('search');
+    const [activeTab, setActiveTab] = useState<'search' | 'queue' | 'appointments' | 'billing'>('search');
 
     return (
         <div style={{ paddingTop: '6rem', minHeight: '100vh', paddingBottom: '4rem', maxWidth: '1440px', margin: '0 auto', padding: '6rem 2rem 4rem' }}>
@@ -72,12 +73,32 @@ export const NurseDashboard: React.FC = () => {
                 >
                     <Calendar size={20} /> Appointments
                 </button>
+                <button 
+                    onClick={() => setActiveTab('billing')}
+                    style={{ 
+                        padding: '1rem 2rem', 
+                        background: 'transparent',
+                        border: 'none',
+                        borderBottom: activeTab === 'billing' ? '4px solid var(--primary)' : '4px solid transparent',
+                        color: activeTab === 'billing' ? 'var(--primary)' : 'var(--on-surface-variant)',
+                        fontWeight: activeTab === 'billing' ? 600 : 500,
+                        fontSize: '1.05rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        transition: 'all 0.2s ease'
+                    }}
+                >
+                    <Pill size={20} /> Pharmacy & Billing
+                </button>
             </div>
 
             <main style={{ minHeight: '600px' }}>
                 {activeTab === 'search' && <SearchPage />}
                 {activeTab === 'queue' && <QueuePage />}
                 {activeTab === 'appointments' && <AppointmentsPage />}
+                {activeTab === 'billing' && <BillingPage />}
             </main>
         </div>
     );

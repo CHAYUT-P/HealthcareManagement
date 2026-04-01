@@ -99,13 +99,20 @@ def get_my_history(session: Session = Depends(get_session), current_user: User =
     visits = session.exec(select(Visit).where(Visit.patient_id == patient.id).order_by(Visit.created_at.desc())).all()
     history = []
     for v in visits:
+        rx = v.prescription
         history.append({
             "id": v.id,
             "date": v.created_at.isoformat(),
             "chief_complaint": v.vitals.chief_complaint if v.vitals else "None recorded",
             "doctor_name": v.assigned_doctor.username if v.assigned_doctor else "Attending Doctor",
             "diagnosis": v.clinical_note.diagnosis if v.clinical_note else "Pending/None",
-            "treatments": v.clinical_note.prescriptions if v.clinical_note else ""
+            "treatments": v.clinical_note.prescriptions if v.clinical_note else "",
+            "medication_cost": rx.total_amount if rx else 0,
+            "treatment_fee": v.treatment_fee or 0,
+            "grand_total": (rx.total_amount if rx and rx.total_amount else 0) + (v.treatment_fee or 0),
+            "prescription_items": [
+                {"name": item.medicine_name, "quantity": item.quantity} for item in rx.items
+            ] if rx else []
         })
     return history
 
@@ -202,13 +209,20 @@ def get_patient_history(patient_id: int, session: Session = Depends(get_session)
     visits = session.exec(select(Visit).where(Visit.patient_id == patient_id).order_by(Visit.created_at.desc())).all()
     history = []
     for v in visits:
+        rx = v.prescription
         history.append({
             "id": v.id,
             "date": v.created_at.isoformat(),
             "chief_complaint": v.vitals.chief_complaint if v.vitals else "None recorded",
             "doctor_name": "Attending Doctor",
             "diagnosis": v.clinical_note.diagnosis if v.clinical_note else "Pending/None",
-            "treatments": v.clinical_note.prescriptions if v.clinical_note else ""
+            "treatments": v.clinical_note.prescriptions if v.clinical_note else "",
+            "medication_cost": rx.total_amount if rx else 0,
+            "treatment_fee": v.treatment_fee or 0,
+            "grand_total": (rx.total_amount if rx and rx.total_amount else 0) + (v.treatment_fee or 0),
+            "prescription_items": [
+                {"name": item.medicine_name, "quantity": item.quantity} for item in rx.items
+            ] if rx else []
         })
     return history
 
@@ -237,8 +251,8 @@ def update_treatment(treatment_id: int, status: str, session: Session = Depends(
         raise HTTPException(status_code=404, detail="Treatment not found")
     treatment.status = status
     if status == "finished":
-        from datetime import datetime
-        treatment.finished_at = datetime.utcnow()
+        from datetime import datetime, timezone
+        treatment.finished_at = datetime.now(timezone.utc)
     session.add(treatment)
     session.commit()
     session.refresh(treatment)
@@ -262,9 +276,9 @@ class AppointmentBookingReq(BaseModel):
     email: str
     phone: str
     service: str
-    doctor: str
     date: str
     time: str
+    details: Optional[str] = None
 
 @router.post("/appointments/book", response_model=Appointment)
 def book_appointment(req: AppointmentBookingReq, session: Session = Depends(get_session), current_user: Optional[User] = Depends(get_optional_current_user)):
@@ -290,7 +304,8 @@ def book_appointment(req: AppointmentBookingReq, session: Session = Depends(get_
         date=req.date,
         time=req.time,
         service=req.service,
-        doctor_name=req.doctor,
+        doctor_name="Pending",
+        details=req.details,
         status="scheduled"
     )
     session.add(appt)
@@ -306,6 +321,7 @@ class AppointmentWithPatient(BaseModel):
     time: str
     service: str
     doctor_name: str
+    details: Optional[str] = None
     status: str
 
 @router.get("/appointments/all", response_model=List[AppointmentWithPatient])
@@ -321,6 +337,7 @@ def get_all_appointments(session: Session = Depends(get_session), current_user: 
             time=appt.time,
             service=appt.service,
             doctor_name=appt.doctor_name,
+            details=appt.details,
             status=appt.status
         ))
     return result

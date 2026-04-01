@@ -29,22 +29,13 @@ const AppointmentPage = () => {
     email: user?.email || '',
     phone: user?.phone || '',
     service: '',
-    doctor: '',
+    details: '',
     date: '',
     time: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-
-  const [doctors, setDoctors] = useState<any[]>([]);
-
-  React.useEffect(() => {
-    fetch('http://localhost:8000/public/doctors')
-      .then(res => res.json())
-      .then(data => setDoctors(data))
-      .catch(console.error);
-  }, []);
 
   React.useEffect(() => {
     if (user) {
@@ -104,7 +95,7 @@ const AppointmentPage = () => {
       email: user?.email || '',
       phone: user?.phone || '',
       service: '',
-      doctor: '',
+      details: '',
       date: '',
       time: ''
     });
@@ -122,7 +113,7 @@ const AppointmentPage = () => {
             <CheckCircle2 size={64} color="var(--secondary)" />
           </div>
           <h2>Appointment Confirmed!</h2>
-          <p>Thank you, {formData.firstName} {formData.lastName}. Your appointment for {formData.service} with {formData.doctor} has been scheduled for {formData.date} at {formData.time}.</p>
+          <p>Thank you, {formData.firstName} {formData.lastName}. Your appointment for {formData.service} has been successfully scheduled for {formData.date} at {formData.time}.</p>
           <p className="confirmation-note">A confirmation email has been sent to {formData.email}.</p>
           <button className="btn-primary" onClick={resetForm}>Book Another Appointment</button>
         </motion.div>
@@ -278,21 +269,19 @@ const AppointmentPage = () => {
                         </select>
                       </div>
                     </div>
-                    <div className="form-group">
-                      <label htmlFor="doctor">Preferred Doctor</label>
-                      <div className="input-wrapper">
-                        <User className="input-icon" size={18} />
-                        <select
-                          id="doctor"
-                          name="doctor"
-                          required
-                          value={formData.doctor}
-                          onChange={handleInputChange}
-                        >
-                          <option value="">Select a doctor</option>
-                          {doctors.map((d: any) => <option key={d.id} value={`Dr. ${d.username}`}>Dr. {d.username} - {d.specialty}</option>)}
-                        </select>
-                      </div>
+                  </div>
+                  <div className="form-group" style={{ marginTop: '1.5rem' }}>
+                    <label htmlFor="details">Reason for Visit (Details)</label>
+                    <div className="input-wrapper" style={{ alignItems: 'flex-start' }}>
+                      <textarea
+                        id="details"
+                        name="details"
+                        placeholder="Please briefly describe your symptoms or reason for the visit..."
+                        value={formData.details}
+                        onChange={(e) => setFormData(prev => ({ ...prev, details: e.target.value }))}
+                        rows={3}
+                        style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)', resize: 'vertical', fontFamily: 'inherit' }}
+                      />
                     </div>
                   </div>
                 </div>

@@ -15,6 +15,8 @@ export const DoctorDashboard: React.FC = () => {
         lab_orders: ''
     });
 
+    const [prescriptionItems, setPrescriptionItems] = useState<{ medicine_name: string; instructions: string; quantity: number }[]>([]);
+
     useEffect(() => {
         fetchCurrentPatient();
     }, []);
@@ -43,7 +45,7 @@ export const DoctorDashboard: React.FC = () => {
             const res = await fetch(`http://localhost:8000/doctor/visits/${currentData.visit.id}/consult`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify(clinicalNote)
+                body: JSON.stringify({ ...clinicalNote, prescription_items: prescriptionItems })
             });
             if (res.ok) {
                 setCurrentData(null);
@@ -53,6 +55,7 @@ export const DoctorDashboard: React.FC = () => {
                     prescriptions: '',
                     lab_orders: ''
                 });
+                setPrescriptionItems([]);
                 alert("Consultation Complete. Patient moved to Pharmacy/Billing.");
             }
         } catch (e) {
@@ -192,7 +195,23 @@ export const DoctorDashboard: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div style={{ marginTop: '1rem', paddingTop: '2rem', borderTop: '1px solid var(--outline-variant)' }}>
+                            <div style={{ marginTop: '2rem', borderTop: '1px solid var(--outline-variant)', paddingTop: '1.5rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                    <label style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--on-surface)' }}>Detailed Prescriptions (Pharmacy)</label>
+                                    <button type="button" onClick={() => setPrescriptionItems([...prescriptionItems, { medicine_name: '', instructions: '', quantity: 1 }])} className="btn-signin" style={{ padding: '0.5rem 1rem' }}>+ Add Medication</button>
+                                </div>
+                                {prescriptionItems.map((item, idx) => (
+                                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 3fr) minmax(0, 1fr) auto', gap: '1rem', marginBottom: '1rem', alignItems: 'start' }}>
+                                        <input placeholder="Medicine Name" value={item.medicine_name} onChange={e => { const newItems = [...prescriptionItems]; newItems[idx].medicine_name = e.target.value; setPrescriptionItems(newItems); }} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} required />
+                                        <input placeholder="Instructions (e.g. 1 pill twice a day)" value={item.instructions} onChange={e => { const newItems = [...prescriptionItems]; newItems[idx].instructions = e.target.value; setPrescriptionItems(newItems); }} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} required />
+                                        <input type="number" min="1" value={item.quantity} onChange={e => { const newItems = [...prescriptionItems]; newItems[idx].quantity = parseInt(e.target.value) || 1; setPrescriptionItems(newItems); }} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} required />
+                                        <button type="button" onClick={() => setPrescriptionItems(prescriptionItems.filter((_, i) => i !== idx))} style={{ padding: '0.75rem', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontWeight: 'bold' }}>X</button>
+                                    </div>
+                                ))}
+                                {prescriptionItems.length === 0 && <p style={{ color: 'var(--outline)', fontStyle: 'italic', fontSize: '0.95rem' }}>No medications added. Click "+ Add Medication" to prescribe items.</p>}
+                            </div>
+
+                            <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid var(--outline-variant)' }}>
                                 <button type="submit" className="btn-primary" style={{ width: '100%', padding: '1.25rem', fontSize: '1.1rem', borderRadius: 'var(--radius-full)', background: 'var(--primary)', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
                                     Complete Consultation & Discharge to Pharmacy
                                 </button>

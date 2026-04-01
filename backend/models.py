@@ -1,6 +1,6 @@
 from typing import Optional, List
 from sqlmodel import Field, SQLModel, Relationship
-from datetime import datetime
+from datetime import datetime, timezone
 
 class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -38,12 +38,33 @@ class Visit(SQLModel, table=True):
     status: str = Field(default="Waiting for Triage")
     # statuses: "Waiting for Triage", "Ready for Doctor", "In Consultation", "Sent to Pharmacy/Billing", "Discharged"
     triage_level: str = Field(default="Green") # "Red", "Yellow", "Green"
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    treatment_fee: Optional[float] = Field(default=0.0)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     patient: Patient = Relationship(back_populates="visits")
     assigned_doctor: Optional["User"] = Relationship()
     vitals: Optional["Vitals"] = Relationship(back_populates="visit", sa_relationship_kwargs={'uselist': False})
     clinical_note: Optional["ClinicalNote"] = Relationship(back_populates="visit", sa_relationship_kwargs={'uselist': False})
+    prescription: Optional["Prescription"] = Relationship(back_populates="visit", sa_relationship_kwargs={'uselist': False})
+
+class PrescriptionItem(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    prescription_id: int = Field(foreign_key="prescription.id")
+    medicine_name: str
+    instructions: str
+    quantity: int
+    unit_price: Optional[float] = None
+    
+    prescription: "Prescription" = Relationship(back_populates="items")
+
+class Prescription(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    visit_id: int = Field(foreign_key="visit.id")
+    total_amount: Optional[float] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    
+    visit: Visit = Relationship(back_populates="prescription")
+    items: List[PrescriptionItem] = Relationship(back_populates="prescription")
 
 class Vitals(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -79,7 +100,7 @@ class Treatment(SQLModel, table=True):
     patient_id: int = Field(foreign_key="patient.id")
     description: str
     status: str = Field(default="current") # 'current' or 'finished'
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     finished_at: Optional[datetime] = None
 
 class Appointment(SQLModel, table=True):
@@ -88,6 +109,7 @@ class Appointment(SQLModel, table=True):
     date: str
     time: str
     service: str
-    doctor_name: str
+    doctor_name: Optional[str] = Field(default="Pending")
+    details: Optional[str] = None
     status: str = Field(default="scheduled") # 'scheduled', 'completed', 'cancelled'
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

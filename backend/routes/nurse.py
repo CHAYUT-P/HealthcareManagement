@@ -3,7 +3,7 @@ from sqlmodel import Session, select
 from typing import Optional, List
 
 from database import get_session
-from models import Vitals, Visit, User
+from models import Vitals, Visit, User, Prescription, PrescriptionItem
 from auth import require_role
 from pydantic import BaseModel
 
@@ -74,8 +74,8 @@ def assign_doctor(
 
 @router.get("/queue/today")
 def get_queue_today(session: Session = Depends(get_session), current_user: User = Depends(require_role(["nurse"]))):
-    from datetime import datetime, timedelta
-    cutoff = datetime.utcnow() - timedelta(hours=24)
+    from datetime import datetime, timedelta, timezone
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
     visits = session.exec(
         select(Visit)
         .where(Visit.status != "Discharged")
@@ -125,3 +125,78 @@ def get_queue_today(session: Session = Depends(get_session), current_user: User 
             } if vitals else None,
         })
     return result
+
+class BillingItemUpdate(BaseModel):
+    item_id: int
+    unit_price: float
+
+class BillingFinalizeRequest(BaseModel):
+    items: List[BillingItemUpdate]
+    treatment_fee: float
+
+@router.get("/billing/queue")
+def get_billing_queue(session: Session = Depends(get_session), current_user: User = Depends(require_role(["nurse"]))):
+    visits = session.exec(
+        select(Visit).where(Visit.status == "PENDING_PAYMENT")
+    ).all()
+    
+    result = []
+    for v in visits:
+        rx = v.prescription
+        result.append({
+            "visit_id": v.id,
+            "patient_name": v.patient.name,
+            "assigned_doctor_id": v.assigned_doctor_id,
+            "created_at": v.created_at.isoformat(),
+            "prescription_id": rx.id if rx else None,
+            "items": [
+                {
+                    "item_id": item.id,
+                    "medicine_name": item.medicine_name,
+                    "instructions": item.instructions,
+                    "quantity": item.quantity,
+                    "unit_price": item.unit_price
+                } for item in rx.items
+            ] if rx else []
+        })
+    return result
+
+@router.patch("/billing/{visit_id}/finalize")
+def finalize_billing(
+    visit_id: int,
+    req: BillingFinalizeRequest,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(require_role(["nurse"]))
+):
+    visit = session.get(Visit, visit_id)
+    if not visit or visit.status != "PENDING_PAYMENT":
+        raise HTTPException(status_code=404, detail="Visit not pending payment")
+        
+    rx = visit.prescription
+    visit.treatment_fee = req.treatment_fee
+    
+    if not rx:
+        # If no prescription, just complete it
+        visit.status = "COMPLETED"
+        session.add(visit)
+        session.commit()
+        return {"success": True, "total_amount": visit.treatment_fee}
+        
+    total = 0.0
+    price_map = {item.item_id: item.unit_price for item in req.items}
+    
+    for rx_item in rx.items:
+        if rx_item.id in price_map:
+            rx_item.unit_price = price_map[rx_item.id]
+            session.add(rx_item)
+            total += (rx_item.unit_price * rx_item.quantity)
+            
+    rx.total_amount = total
+    visit.status = "COMPLETED"
+    
+    session.add(rx)
+    session.add(visit)
+    session.commit()
+    
+    grand_total = total + visit.treatment_fee
+    return {"success": True, "total_amount": grand_total}

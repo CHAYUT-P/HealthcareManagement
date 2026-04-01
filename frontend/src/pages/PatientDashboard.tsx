@@ -251,7 +251,7 @@ const PatientDashboard = () => {
                                     <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem', border: '1px solid var(--primary-container)', borderRadius: 'var(--radius-lg)', background: 'var(--surface)' }}>
                                         <div>
                                             <strong style={{ fontSize: '1.1rem', color: 'var(--on-surface)', display: 'block' }}>{a.service}</strong>
-                                            <span style={{ color: 'var(--on-surface-variant)' }}>Dr. {a.doctor_name}</span>
+                                            {a.details && <span style={{ color: 'var(--on-surface-variant)', display: 'block', fontSize: '0.9rem', marginTop: '0.25rem' }}>"{a.details}"</span>}
                                         </div>
                                         <div style={{ textAlign: 'right' }}>
                                             <strong style={{ display: 'block', color: 'var(--primary)' }}>{a.date}</strong>
@@ -286,10 +286,36 @@ const PatientDashboard = () => {
                                                     <strong style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)' }}>Outcome Diagnosis</strong>
                                                     <p style={{ marginTop: '0.25rem', fontWeight: 500, color: 'var(--on-surface)' }}>{h.diagnosis || 'Pending'}</p>
                                                 </div>
-                                                {h.treatments && (
+                                                {(h.treatments || (h.prescription_items && h.prescription_items.length > 0)) && (
                                                     <div>
                                                         <strong style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)' }}>Prescriptions</strong>
-                                                        <p style={{ marginTop: '0.25rem', color: 'var(--on-surface)' }}>{h.treatments}</p>
+                                                        {h.treatments && <p style={{ marginTop: '0.25rem', color: 'var(--on-surface)', whiteSpace: 'pre-wrap' }}>{h.treatments}</p>}
+                                                        {h.prescription_items && h.prescription_items.length > 0 && (
+                                                            <ul style={{ margin: '0.5rem 0 0 1.25rem', padding: 0, color: 'var(--on-surface)' }}>
+                                                                {h.prescription_items.map((pi: any, idx: number) => (
+                                                                    <li key={idx} style={{ marginBottom: '0.25rem' }}>{pi.quantity}x {pi.name}</li>
+                                                                ))}
+                                                            </ul>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                {(h.grand_total !== undefined && h.grand_total > 0) && (
+                                                    <div style={{ marginTop: '1rem', background: 'var(--surface-variant)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }}>
+                                                        <h5 style={{ margin: '0 0 0.5rem 0', fontSize: '0.95rem', color: 'var(--on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Billing Summary</h5>
+                                                        <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--on-surface)' }}>
+                                                                <span>Treatment Fee</span>
+                                                                <span>${(h.treatment_fee || 0).toFixed(2)}</span>
+                                                            </div>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--on-surface)' }}>
+                                                                <span>Medications</span>
+                                                                <span>${(h.medication_cost || 0).toFixed(2)}</span>
+                                                            </div>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.05rem', color: 'var(--on-surface)', fontWeight: 700, borderTop: '1px solid var(--outline-variant)', paddingTop: '0.75rem', marginTop: '0.25rem' }}>
+                                                                <span>Grand Total</span>
+                                                                <span>${(h.grand_total || 0).toFixed(2)}</span>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>

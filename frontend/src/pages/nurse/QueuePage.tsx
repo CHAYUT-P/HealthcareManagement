@@ -180,7 +180,7 @@ export const QueuePage: React.FC = () => {
                                             <div>
                                                 <strong style={{ fontSize: '1.1rem', color: selectedVisit?.id === v.id && activeTab === 'triage' ? 'var(--on-primary-container)' : 'var(--on-surface)' }}>{v.patient.name}</strong>
                                                 <div style={{ fontSize: '0.9rem', color: 'var(--on-surface-variant)', marginTop: '0.25rem' }}>
-                                                    HN: {v.patient.hn} • Wait: {Math.floor((Date.now() - new Date(v.created_at).getTime()) / 60000)}m
+                                                    HN: {v.patient.hn} • Wait: {Math.floor((Date.now() - new Date(v.created_at.includes('Z') ? v.created_at : v.created_at + '+00:00').getTime()) / 60000)}m
                                                 </div>
                                             </div>
                                         </div>
