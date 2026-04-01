@@ -19,11 +19,22 @@ First, initialize and start the API backend. It will automatically generate an S
    ```bash
    cd backend
    ```
-2. Install the Python dependencies (it is recommended to use a virtual environment):
+2. **Create and Activate a Virtual Environment (Highly Recommended):**
+   - **On macOS/Linux:**
+     ```bash
+     python3 -m venv venv
+     source venv/bin/activate
+     ```
+   - **On Windows:**
+     ```bash
+     python -m venv venv
+     .\venv\Scripts\activate
+     ```
+3. Install the Python dependencies:
    ```bash
    pip install "fastapi[standard]" sqlmodel passlib[bcrypt] python-jose[cryptography] python-multipart
    ```
-3. Run the backend development server:
+4. Run the backend development server:
    ```bash
    fastapi dev main.py
    ```
@@ -52,16 +63,13 @@ While the backend is running, open a **new terminal window** to start the fronte
 
 When the backend starts for the first time, it automatically creates several accounts for you to test the different role-based views.
 
-**Nurse Login:**
-- **Email:** `admin_nurse@example.com`
-- **Password:** `password123`
+**Staff Accounts:**
+- **Nurse:** `admin_nurse@example.com` / `password123`
+- **Doctor:** `admin_doctor@example.com` / `password123`
 
-**Doctor Login:**
-- **Email:** `admin_doctor@example.com`
-- **Password:** `password123`
-
-**Patient Login:**
-- **Citizen ID (Username):** `1-2345-67890-12-3`
-- **Password:** `password123`
+**Patient Accounts:**
+- **Patient 1:** `1-2345-67890-12-3` / `password123`
+- **Patient 2:** `9-8765-43210-99-9` / `password123`
+- **Manual Enrollment:** `123456789` / (Password set during registration)
 
 > You can also try creating a brand new patient by selecting **"Continue as Guest"** on the Book Appointment page and confirming your details. Then, sign in using your Citizen ID to see your brand new profile!
