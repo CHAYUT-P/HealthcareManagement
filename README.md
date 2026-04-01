@@ -32,7 +32,7 @@ First, initialize and start the API backend. It will automatically generate an S
      ```
 3. Install the Python dependencies:
    ```bash
-   pip install "fastapi[standard]" sqlmodel passlib[bcrypt] python-jose[cryptography] python-multipart
+   pip install -r requirements.txt
    ```
 4. Run the backend development server:
    ```bash
