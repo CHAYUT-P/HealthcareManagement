@@ -64,6 +64,7 @@ While the backend is running, open a **new terminal window** to start the fronte
 When the backend starts for the first time, it automatically creates several accounts for you to test the different role-based views.
 
 **Staff Accounts:**
+- **Admin:** `admin@example.com` / `password123`
 - **Nurse:** `admin_nurse@example.com` / `password123`
 - **Doctor:** `admin_doctor@example.com` / `password123`
 

@@ -19,6 +19,7 @@ async def lifespan(app: FastAPI):
             from models import Patient
             nurse = User(username="admin_nurse@example.com", hashed_password=get_password_hash("password123"), role="nurse")
             doctor = User(username="admin_doctor@example.com", hashed_password=get_password_hash("password123"), role="doctor")
+            admin = User(username="admin@example.com", hashed_password=get_password_hash("password123"), role="ADMIN")
             patient_user = User(username="1-2345-67890-12-3", hashed_password=get_password_hash("password123"), role="PATIENT", national_id="1-2345-67890-12-3")
             
             patient_model = Patient(
@@ -31,6 +32,7 @@ async def lifespan(app: FastAPI):
             
             session.add(nurse)
             session.add(doctor)
+            session.add(admin)
             session.add(patient_user)
             session.add(patient_model)
             session.commit()
