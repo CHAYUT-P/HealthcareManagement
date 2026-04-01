@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './styles/Variables.css';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -14,8 +14,7 @@ import PatientRecords from './pages/PatientRecords';
 import Footer from './components/Footer';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { SearchPage } from './pages/nurse/SearchPage';
-import { QueuePage } from './pages/nurse/QueuePage';
+import { NurseDashboard } from './pages/nurse/NurseDashboard';
 import { DoctorDashboard } from './pages/DoctorDashboard';
 
 export default function App() {
@@ -32,16 +31,18 @@ export default function App() {
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/appointment" element={<AppointmentPage />} />
               <Route path="/signin" element={<SignInPage />} />
-              <Route path="/nurse/search" element={
+              {/* Nurse Roles - Unified Dashboard */}
+              <Route path="/nurse/dashboard" element={
                 <ProtectedRoute allowedRoles={['nurse']}>
-                  <SearchPage />
+                  <NurseDashboard />
                 </ProtectedRoute>
               } />
-              <Route path="/nurse/queue" element={
-                <ProtectedRoute allowedRoles={['nurse']}>
-                  <QueuePage />
-                </ProtectedRoute>
-              } />
+              
+              {/* Fallback route to redirect old nurse routes if manually visited */}
+              <Route path="/nurse/search" element={<Navigate to="/nurse/dashboard" replace />} />
+              <Route path="/nurse/queue" element={<Navigate to="/nurse/dashboard" replace />} />
+              <Route path="/nurse/appointments" element={<Navigate to="/nurse/dashboard" replace />} />
+
               <Route path="/doctor" element={
                 <ProtectedRoute allowedRoles={['doctor']}>
                   <DoctorDashboard />

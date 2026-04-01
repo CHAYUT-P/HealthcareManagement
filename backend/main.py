@@ -65,6 +65,24 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     )
     return {"access_token": access_token, "token_type": "bearer", "role": user.role}
 
+from pydantic import BaseModel
+class PublicDoctor(BaseModel):
+    id: int
+    username: str
+    specialty: str = "General Practitioner"
+
+@app.get("/public/doctors", response_model=list[PublicDoctor])
+def get_public_doctors(session: Session = Depends(get_session)):
+    doctors = session.exec(select(User).where(User.role == "doctor")).all()
+    # Masking email domains for a cleaner public name for now
+    return [
+        PublicDoctor(
+            id=d.id, 
+            username=d.username.split('@')[0].replace('_', ' ').title(),
+            specialty="General Practitioner"
+        ) for d in doctors
+    ]
+
 @app.get("/")
 def read_root():
     return {"message": "Healthcare API"}

@@ -60,3 +60,18 @@ def require_role(allowed_roles: list[str]):
             raise HTTPException(status_code=403, detail="Operation not permitted")
         return current_user
     return role_checker
+
+async def get_optional_current_user(token: Optional[str] = Depends(OAuth2PasswordBearer(tokenUrl="token", auto_error=False)), session: Session = Depends(get_session)):
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            return None
+    except JWTError:
+        return None
+    
+    user = session.exec(select(User).where(User.username == username)).first()
+    return user
+

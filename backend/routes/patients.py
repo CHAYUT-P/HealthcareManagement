@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from database import get_session
 from models import Patient, Visit, User, Treatment, Appointment
-from auth import get_current_active_user, get_password_hash
+from auth import get_current_active_user, get_password_hash, get_optional_current_user, require_role
 
 router = APIRouter(prefix="/patients", tags=["patients"])
 
@@ -255,3 +255,72 @@ def create_appointment(patient_id: int, appointment: Appointment, session: Sessi
 @router.get("/{patient_id}/appointments", response_model=List[Appointment])
 def get_patient_appointments(patient_id: int, session: Session = Depends(get_session), current_user: User = Depends(get_current_active_user)):
     return session.exec(select(Appointment).where(Appointment.patient_id == patient_id)).all()
+
+class AppointmentBookingReq(BaseModel):
+    firstName: str
+    lastName: str
+    email: str
+    phone: str
+    service: str
+    doctor: str
+    date: str
+    time: str
+
+@router.post("/appointments/book", response_model=Appointment)
+def book_appointment(req: AppointmentBookingReq, session: Session = Depends(get_session), current_user: Optional[User] = Depends(get_optional_current_user)):
+    patient = None
+    if current_user and current_user.national_id:
+        patient = session.exec(select(Patient).where(Patient.national_id == current_user.national_id)).first()
+    
+    if not patient:
+        full_name = f"{req.firstName} {req.lastName}"
+        patient = session.exec(select(Patient).where(
+            (Patient.email == req.email) | 
+            ((Patient.name == full_name) & (Patient.contact_info == req.phone))
+        )).first()
+        
+        if not patient:
+            patient = Patient(name=full_name, email=req.email, contact_info=req.phone, age=0, gender="Not specified")
+            session.add(patient)
+            session.commit()
+            session.refresh(patient)
+            
+    appt = Appointment(
+        patient_id=patient.id,
+        date=req.date,
+        time=req.time,
+        service=req.service,
+        doctor_name=req.doctor,
+        status="scheduled"
+    )
+    session.add(appt)
+    session.commit()
+    session.refresh(appt)
+    return appt
+
+class AppointmentWithPatient(BaseModel):
+    id: int
+    patient_id: int
+    patient_name: str
+    date: str
+    time: str
+    service: str
+    doctor_name: str
+    status: str
+
+@router.get("/appointments/all", response_model=List[AppointmentWithPatient])
+def get_all_appointments(session: Session = Depends(get_session), current_user: User = Depends(require_role(["nurse", "doctor", "ADMIN", "NURSE", "DOCTOR"]))):
+    appts = session.exec(select(Appointment, Patient).join(Patient, Appointment.patient_id == Patient.id)).all()
+    result = []
+    for appt, patient in appts:
+        result.append(AppointmentWithPatient(
+            id=appt.id,
+            patient_id=patient.id,
+            patient_name=patient.name,
+            date=appt.date,
+            time=appt.time,
+            service=appt.service,
+            doctor_name=appt.doctor_name,
+            status=appt.status
+        ))
+    return result

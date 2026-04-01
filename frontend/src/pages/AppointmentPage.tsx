@@ -15,19 +15,12 @@ const services = [
   "Mental Health Support"
 ];
 
-const doctors = [
-  { id: 1, name: "Dr. Sarah Mitchell", specialty: "General Practitioner" },
-  { id: 2, name: "Dr. James Wilson", specialty: "Cardiologist" },
-  { id: 3, name: "Dr. Elena Rodriguez", specialty: "Dermatologist" },
-  { id: 4, name: "Dr. David Chen", specialty: "Pediatrician" }
-];
-
 const timeSlots = [
   "09:00 AM", "10:00 AM", "11:00 AM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM"
 ];
 
 const AppointmentPage = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const navigate = useNavigate();
   const [bookingType, setBookingType] = useState<'guest' | null>(null);
   const [formData, setFormData] = useState({
@@ -42,6 +35,16 @@ const AppointmentPage = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const [doctors, setDoctors] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    fetch('http://localhost:8000/public/doctors')
+      .then(res => res.json())
+      .then(data => setDoctors(data))
+      .catch(console.error);
+  }, []);
 
   React.useEffect(() => {
     if (user) {
@@ -60,19 +63,40 @@ const AppointmentPage = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMsg('');
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      if (user && token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const res = await fetch('http://localhost:8000/patients/appointments/book', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(formData)
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Failed to book appointment");
+      }
       setIsSuccess(true);
-    }, 1500);
+    } catch (e: any) {
+      setErrorMsg(e.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const resetForm = () => {
     setIsSuccess(false);
+    setErrorMsg('');
     setBookingType(null);
     setFormData({
       firstName: user?.firstName || '',
@@ -160,6 +184,12 @@ const AppointmentPage = () => {
                   <ChevronRight size={20} style={{ transform: 'rotate(180deg)' }} />
                   <span>Change Booking Method</span>
                 </button>
+              )}
+
+              {errorMsg && (
+                <div style={{ padding: '1rem', background: '#fee2e2', color: '#991b1b', borderRadius: 'var(--radius-lg)', marginBottom: '1.5rem', fontWeight: 500, border: '1px solid #fecaca' }}>
+                  {errorMsg}
+                </div>
               )}
 
               <form onSubmit={handleSubmit} className="appointment-form">
@@ -260,7 +290,7 @@ const AppointmentPage = () => {
                           onChange={handleInputChange}
                         >
                           <option value="">Select a doctor</option>
-                          {doctors.map(d => <option key={d.id} value={d.name}>{d.name} - {d.specialty}</option>)}
+                          {doctors.map((d: any) => <option key={d.id} value={`Dr. ${d.username}`}>Dr. {d.username} - {d.specialty}</option>)}
                         </select>
                       </div>
                     </div>

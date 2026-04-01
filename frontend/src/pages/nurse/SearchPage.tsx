@@ -204,12 +204,7 @@ export const SearchPage: React.FC = () => {
     };
 
     return (
-        <div style={{ paddingTop: '6rem', minHeight: '100vh', paddingBottom: '4rem', maxWidth: '1280px', margin: '0 auto', padding: '6rem 2rem 4rem' }}>
-            <header style={{ marginBottom: '3rem' }}>
-                <h1 style={{ color: 'var(--primary)', marginBottom: '0.5rem' }}>Patient Search & Registration</h1>
-                <p style={{ color: 'var(--on-surface-variant)', fontSize: '1.1rem' }}>Find existing patients or register new walk-in patients.</p>
-            </header>
-
+        <div>
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) minmax(400px, 2fr)', gap: '2rem' }}>
 
                 {/* Left Column: Search Bar & Results */}

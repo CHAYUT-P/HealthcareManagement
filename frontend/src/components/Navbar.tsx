@@ -34,10 +34,7 @@ const Navbar = () => {
               {user.role === 'ADMIN' && <Link to="/admin" className="btn-signin">Admin Panel</Link>}
               {(!user.role || user.role === 'PATIENT') && <Link to="/patient" className="btn-signin">Patient Profile</Link>}
               {user.role === 'nurse' && (
-                <>
-                  <Link to="/nurse/search" className="btn-signin" style={{ background: 'transparent', border: '1px solid var(--primary)', color: 'var(--primary)' }}>Patient Search</Link>
-                  <Link to="/nurse/queue" className="btn-signin">Active Queue</Link>
-                </>
+                <Link to="/nurse/dashboard" className="btn-signin" style={{ background: 'transparent', border: '1px solid var(--primary)', color: 'var(--primary)' }}>Nurse Dashboard</Link>
               )}
               {user.role === 'doctor' && <Link to="/doctor" className="btn-signin">Doctor Dashboard</Link>}
               {(user.role === 'NURSE' || user.role === 'DOCTOR') && <Link to="/staff" className="btn-signin">Staff Portal</Link>}
@@ -46,7 +43,10 @@ const Navbar = () => {
           ) : (
             <Link to="/signin" className="btn-signin">Sign In</Link>
           )}
-          <Link to="/appointment" className="btn-primary">Book Appointment</Link>
+          
+          {(!user || !['nurse', 'doctor', 'NURSE', 'DOCTOR'].includes(user.role)) && (
+            <Link to="/appointment" className="btn-primary">Book Appointment</Link>
+          )}
         </div>
       </div>
     </header>

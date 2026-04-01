@@ -62,7 +62,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
             // Only force navigation if they logged in manually
             setTimeout(() => {
-                if (newRole === 'nurse') navigate('/nurse/search');
+                if (newRole === 'nurse') navigate('/nurse/dashboard');
                 else if (newRole === 'doctor') navigate('/doctor');
                 else if (newRole === 'PATIENT') navigate('/patient');
             }, 0);
