@@ -10,6 +10,12 @@ class User(SQLModel, table=True):
     status: str = Field(default="ACTIVE")  # 'ACTIVE', 'INACTIVE', 'SUSPENDED'
     national_id: Optional[str] = Field(default=None, index=True)  # For linking patients
 
+    def is_staff(self) -> bool:
+        return self.role.lower() in ['nurse', 'doctor']
+
+    def is_admin(self) -> bool:
+        return self.role.upper() == 'ADMIN'
+
 class Patient(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
@@ -30,6 +36,14 @@ class Patient(SQLModel, table=True):
     emergency_contact_name: Optional[str] = None
     emergency_contact_phone: Optional[str] = None
     
+    def get_age_display(self) -> str:
+        return f"{self.age} years old"
+
+    def has_allergies(self) -> bool:
+        if not self.known_allergies:
+            return False
+        return self.known_allergies.strip().lower() != "none"
+    
     visits: List["Visit"] = Relationship(back_populates="patient")
 
 class Visit(SQLModel, table=True):
@@ -41,6 +55,12 @@ class Visit(SQLModel, table=True):
     triage_level: str = Field(default="Green") # "Red", "Yellow", "Green"
     treatment_fee: Optional[float] = Field(default=0.0)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    def is_emergency(self) -> bool:
+        return self.triage_level.lower() == "red"
+
+    def requires_doctor(self) -> bool:
+        return self.status in ["Waiting for Triage", "Ready for Doctor"]
     
     patient: Patient = Relationship(back_populates="visits")
     assigned_doctor: Optional["User"] = Relationship()
@@ -63,6 +83,9 @@ class Prescription(SQLModel, table=True):
     visit_id: int = Field(foreign_key="visit.id")
     total_amount: Optional[float] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    def calculate_total(self) -> float:
+        return sum((item.unit_price or 0.0) * item.quantity for item in self.items)
     
     visit: Visit = Relationship(back_populates="prescription")
     items: List[PrescriptionItem] = Relationship(back_populates="prescription")
@@ -121,3 +144,6 @@ class Appointment(SQLModel, table=True):
     visit_id: Optional[int] = Field(default=None, foreign_key="visit.id")
     
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    def is_confirmed(self) -> bool:
+        return self.status.lower() == "scheduled"
