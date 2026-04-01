@@ -12,8 +12,16 @@ const PatientDashboard = () => {
     // Edit Form State
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState({
-        name: '', contact_info: '', email: '',
-        address: '', emergency_contact_name: '', emergency_contact_phone: ''
+        name: '',
+        gender: '',
+        email: '',
+        contact_info: '',
+        address: '',
+        blood_type: '',
+        known_allergies: '',
+        chronic_diseases: '',
+        emergency_contact_name: '',
+        emergency_contact_phone: ''
     });
 
     useEffect(() => {
@@ -30,9 +38,13 @@ const PatientDashboard = () => {
                 setPatientInfo(pData);
                 setEditForm({
                     name: pData.name || '',
-                    contact_info: pData.contact_info || '',
+                    gender: pData.gender || '',
                     email: pData.email || '',
+                    contact_info: pData.contact_info || '',
                     address: pData.address || '',
+                    blood_type: pData.blood_type || '',
+                    known_allergies: pData.known_allergies || '',
+                    chronic_diseases: pData.chronic_diseases || '',
                     emergency_contact_name: pData.emergency_contact_name || '',
                     emergency_contact_phone: pData.emergency_contact_phone || ''
                 });
@@ -45,6 +57,24 @@ const PatientDashboard = () => {
             if (hRes.ok) setHistory(await hRes.json());
 
         } catch (e) { console.error(e); }
+    };
+
+    const handleCancelEdit = () => {
+        if (patientInfo) {
+            setEditForm({
+                name: patientInfo.name || '',
+                gender: patientInfo.gender || '',
+                email: patientInfo.email || '',
+                contact_info: patientInfo.contact_info || '',
+                address: patientInfo.address || '',
+                blood_type: patientInfo.blood_type || '',
+                known_allergies: patientInfo.known_allergies || '',
+                chronic_diseases: patientInfo.chronic_diseases || '',
+                emergency_contact_name: patientInfo.emergency_contact_name || '',
+                emergency_contact_phone: patientInfo.emergency_contact_phone || ''
+            });
+        }
+        setIsEditing(false);
     };
 
     const handleSaveProfile = async (e: React.FormEvent) => {
@@ -95,16 +125,34 @@ const PatientDashboard = () => {
                                     <input type="text" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} required />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '0.25rem' }}>Email Content</label>
-                                    <input type="email" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} />
+                                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '0.25rem' }}>Gender</label>
+                                    <select value={editForm.gender} onChange={e => setEditForm(prev => ({ ...prev, gender: e.target.value }))} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }}>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
                                 </div>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '0.25rem' }}>Phone Number</label>
-                                    <input type="text" value={editForm.contact_info} onChange={e => setEditForm({ ...editForm, contact_info: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} />
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '0.25rem' }}>Email Contact</label>
+                                        <input type="email" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '0.25rem' }}>Phone Number</label>
+                                        <input type="text" value={editForm.contact_info} onChange={e => setEditForm({ ...editForm, contact_info: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} />
+                                    </div>
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '0.25rem' }}>Current Address</label>
                                     <textarea value={editForm.address} onChange={e => setEditForm({ ...editForm, address: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)', resize: 'vertical' }} rows={2}></textarea>
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '0.25rem' }}>Known Allergies</label>
+                                    <input type="text" value={editForm.known_allergies} onChange={e => setEditForm({ ...editForm, known_allergies: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} placeholder="e.g., Peanuts, Penicillin..." />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '0.25rem' }}>Chronic Diseases</label>
+                                    <input type="text" value={editForm.chronic_diseases} onChange={e => setEditForm({ ...editForm, chronic_diseases: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} placeholder="e.g., Hypertension..." />
                                 </div>
 
                                 <div style={{ borderTop: '1px solid var(--outline-variant)', paddingTop: '1rem', marginTop: '0.5rem' }}>
@@ -122,7 +170,7 @@ const PatientDashboard = () => {
                                 </div>
 
                                 <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                                    <button type="button" onClick={() => setIsEditing(false)} className="btn-signin" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
+                                    <button type="button" onClick={handleCancelEdit} className="btn-signin" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
                                         <X size={18} /> Cancel
                                     </button>
                                     <button type="submit" className="btn-primary" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>

@@ -18,10 +18,9 @@ const SignInPage = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    firstName: '',
-    lastName: '',
+    fullName: '',
+    citizenId: '',
     phone: '',
-    role: 'PATIENT' as const
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -29,7 +28,7 @@ const SignInPage = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -38,33 +37,34 @@ const SignInPage = () => {
         setErrorMsg("Passwords do not match");
         return;
       }
+      if (!formData.citizenId) {
+        setErrorMsg("Citizen ID is required");
+        return;
+      }
       setIsLoading(true);
 
-      setTimeout(() => {
-        const users = JSON.parse(localStorage.getItem('healthcare_users_list') || '[]');
-        const userExists = users.some((u: any) => u.email === formData.email);
-
-        if (userExists) {
-          setErrorMsg("Email already in use. Please sign in.");
+      try {
+        const response = await fetch('http://localhost:8000/patients/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            national_id: formData.citizenId,
+            password: formData.password,
+            name: formData.fullName || 'Patient',
+          })
+        });
+        if (!response.ok) {
+          const err = await response.json();
+          setErrorMsg(err.detail || "Registration failed");
           setIsLoading(false);
           return;
         }
-
-        users.push({
-          id: Date.now().toString(),
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          phone: formData.phone,
-          password: formData.password,
-          role: formData.role,
-          status: 'ACTIVE'
-        });
-        localStorage.setItem('healthcare_users_list', JSON.stringify(users));
-
         setIsLoading(false);
         setIsSuccess(true);
-      }, 1000);
+      } catch (e: any) {
+        setErrorMsg(e.message || "Registration failed");
+        setIsLoading(false);
+      }
     } else {
       setIsLoading(true);
 
@@ -75,7 +75,7 @@ const SignInPage = () => {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({ username: formData.email, password: formData.password })
           });
-          if (!response.ok) throw new Error("Invalid username/email or password");
+          if (!response.ok) throw new Error("Invalid credentials");
           const data = await response.json();
 
           login(data.access_token, data.role);
@@ -109,8 +109,8 @@ const SignInPage = () => {
           <h2>{isSignUp ? 'Account Created!' : 'Welcome Back!'}</h2>
           <p>
             {isSignUp
-              ? `Thank you for joining us, ${formData.firstName}. You can now sign in to your account.`
-              : `Successfully signed in as ${formData.email}. Redirecting you to your dashboard...`}
+              ? `Thank you for joining us. You can now sign in with your Citizen ID.`
+              : `Successfully signed in. Redirecting you to your dashboard...`}
           </p>
           {isSignUp ? (
             <button onClick={() => { setIsSuccess(false); setIsSignUp(false); }} className="btn-primary">Go to Sign In</button>
@@ -152,36 +152,34 @@ const SignInPage = () => {
                   transition={{ duration: 0.3 }}
                   style={{ overflow: 'hidden' }}
                 >
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-                    <div className="form-group">
-                      <label htmlFor="firstName">First Name</label>
-                      <div className="input-wrapper">
-                        <UserPlus className="input-icon" size={18} />
-                        <input
-                          type="text"
-                          id="firstName"
-                          name="firstName"
-                          placeholder="Somchai"
-                          required={isSignUp}
-                          value={formData.firstName}
-                          onChange={handleInputChange}
-                        />
-                      </div>
+                  <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                    <label htmlFor="fullName">Full Name</label>
+                    <div className="input-wrapper">
+                      <UserPlus className="input-icon" size={18} />
+                      <input
+                        type="text"
+                        id="fullName"
+                        name="fullName"
+                        placeholder="Somchai Jaidee"
+                        required={isSignUp}
+                        value={formData.fullName}
+                        onChange={handleInputChange}
+                      />
                     </div>
-                    <div className="form-group">
-                      <label htmlFor="lastName">Last Name</label>
-                      <div className="input-wrapper">
-                        <UserPlus className="input-icon" size={18} />
-                        <input
-                          type="text"
-                          id="lastName"
-                          name="lastName"
-                          placeholder="Jaidee"
-                          required={isSignUp}
-                          value={formData.lastName}
-                          onChange={handleInputChange}
-                        />
-                      </div>
+                  </div>
+                  <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                    <label htmlFor="citizenId">Citizen ID (บัตรประชาชน)</label>
+                    <div className="input-wrapper">
+                      <Mail className="input-icon" size={18} />
+                      <input
+                        type="text"
+                        id="citizenId"
+                        name="citizenId"
+                        placeholder="1-2345-67890-12-3"
+                        required={isSignUp}
+                        value={formData.citizenId}
+                        onChange={handleInputChange}
+                      />
                     </div>
                   </div>
                   <div className="form-group" style={{ marginBottom: '1.5rem' }}>
@@ -192,8 +190,7 @@ const SignInPage = () => {
                         type="tel"
                         id="phone"
                         name="phone"
-                        placeholder="+1 (555) 000-0000"
-                        required={isSignUp}
+                        placeholder="+66 XX XXX XXXX"
                         value={formData.phone}
                         onChange={handleInputChange}
                       />
@@ -203,21 +200,23 @@ const SignInPage = () => {
               )}
             </AnimatePresence>
 
-            <div className="form-group">
-              <label htmlFor="email">Email or Username</label>
-              <div className="input-wrapper">
-                <Mail className="input-icon" size={18} />
-                <input
-                  type="text"
-                  id="email"
-                  name="email"
-                  placeholder="nurse1@example.com"
-                  required
-                  value={formData.email}
-                  onChange={handleInputChange}
-                />
+            {!isSignUp && (
+              <div className="form-group">
+                <label htmlFor="email">Email / Citizen ID</label>
+                <div className="input-wrapper">
+                  <Mail className="input-icon" size={18} />
+                  <input
+                    type="text"
+                    id="email"
+                    name="email"
+                    placeholder="nurse1@example.com or Citizen ID"
+                    required={!isSignUp}
+                    value={formData.email}
+                    onChange={handleInputChange}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="form-group">
               <label htmlFor="password">Password</label>
@@ -273,25 +272,6 @@ const SignInPage = () => {
                       >
                         {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
-                    </div>
-                  </div>
-
-                  <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                    <label htmlFor="role">Account Role (For Demo Purposes)</label>
-                    <div className="input-wrapper">
-                      <select
-                        id="role"
-                        name="role"
-                        required={isSignUp}
-                        value={formData.role}
-                        onChange={handleInputChange}
-                        style={{ width: '100%', padding: '0.75rem 1rem', paddingLeft: '1rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--outline-variant)', background: 'var(--surface)' }}
-                      >
-                        <option value="PATIENT">Patient</option>
-                        <option value="ADMIN">Administrator</option>
-                        <option value="NURSE">Nurse</option>
-                        <option value="DOCTOR">Doctor</option>
-                      </select>
                     </div>
                   </div>
                 </motion.div>

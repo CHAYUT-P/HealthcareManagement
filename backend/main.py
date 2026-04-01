@@ -19,7 +19,7 @@ async def lifespan(app: FastAPI):
             from models import Patient
             nurse = User(username="admin_nurse@example.com", hashed_password=get_password_hash("password123"), role="nurse")
             doctor = User(username="admin_doctor@example.com", hashed_password=get_password_hash("password123"), role="doctor")
-            patient_user = User(username="patient1@example.com", hashed_password=get_password_hash("password123"), role="PATIENT")
+            patient_user = User(username="1-2345-67890-12-3", hashed_password=get_password_hash("password123"), role="PATIENT", national_id="1-2345-67890-12-3")
             
             patient_model = Patient(
                 name="John Doe", age=30, gender="Male", contact_info="123-456-7890", email="patient1@example.com",

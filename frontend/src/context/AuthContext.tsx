@@ -27,8 +27,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Initialize synchronously to prevent Layout/Route flashes on refresh
     const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
     const [user, setUser] = useState<User | null>(() => {
+        const storedToken = localStorage.getItem('token');
         const storedRole = localStorage.getItem('role');
-        if (storedRole) return { username: 'user', role: storedRole };
+        
+        // If a JWT role is stored, but there is no token, clear it out.
+        if (storedRole) {
+            if (!storedToken) {
+                localStorage.removeItem('role');
+            } else {
+                return { username: 'user', role: storedRole };
+            }
+        }
 
         const storedSession = localStorage.getItem('healthcare_current_user');
         if (storedSession) {
@@ -55,6 +64,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setTimeout(() => {
                 if (newRole === 'nurse') navigate('/nurse/search');
                 else if (newRole === 'doctor') navigate('/doctor');
+                else if (newRole === 'PATIENT') navigate('/patient');
             }, 0);
         } else {
             // Legacy Login flow

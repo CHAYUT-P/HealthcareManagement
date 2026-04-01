@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from database import get_session
 from models import Patient, Visit, User, Treatment, Appointment
-from auth import get_current_active_user
+from auth import get_current_active_user, get_password_hash
 
 router = APIRouter(prefix="/patients", tags=["patients"])
 
@@ -35,34 +35,57 @@ def search_patients(q: Optional[str] = None, skip: int = 0, limit: int = 100, se
 
 @router.get("/me", response_model=Optional[Patient])
 def get_me(session: Session = Depends(get_session), current_user: User = Depends(get_current_active_user)):
-    patient = session.exec(select(Patient).where(Patient.email == current_user.username)).first()
+    patient = session.exec(select(Patient).where(Patient.national_id == current_user.national_id)).first()
     return patient
 
 @router.get("/me/appointments", response_model=List[Appointment])
 def get_my_appointments(session: Session = Depends(get_session), current_user: User = Depends(get_current_active_user)):
-    patient = session.exec(select(Patient).where(Patient.email == current_user.username)).first()
+    patient = session.exec(select(Patient).where(Patient.national_id == current_user.national_id)).first()
     if not patient: return []
     return session.exec(select(Appointment).where(Appointment.patient_id == patient.id)).all()
 
 class ProfileUpdate(BaseModel):
     name: Optional[str] = None
+    gender: Optional[str] = None
     email: Optional[str] = None
     contact_info: Optional[str] = None
     address: Optional[str] = None
+    blood_type: Optional[str] = None
+    known_allergies: Optional[str] = None
+    chronic_diseases: Optional[str] = None
     emergency_contact_name: Optional[str] = None
     emergency_contact_phone: Optional[str] = None
 
+class NurseProfileUpdate(ProfileUpdate):
+    national_id: Optional[str] = None
+    age: Optional[int] = None
+
 @router.patch("/me/profile", response_model=Patient)
 def update_my_profile(profile_in: ProfileUpdate, session: Session = Depends(get_session), current_user: User = Depends(get_current_active_user)):
-    patient = session.exec(select(Patient).where(Patient.email == current_user.username)).first()
+    patient = session.exec(select(Patient).where(Patient.national_id == current_user.national_id)).first()
     if not patient: raise HTTPException(status_code=404, detail="Patient not found")
     
     update_data = profile_in.dict(exclude_unset=True)
     for key, value in update_data.items():
         setattr(patient, key, value)
     
-    # If they changed their email, we'd theoretically need to update User.username too
-    # But for demo purposes, we will just save the patient record.
+    session.add(patient)
+    session.commit()
+    session.refresh(patient)
+    return patient
+
+@router.patch("/{patient_id}/profile", response_model=Patient)
+def update_patient_profile_by_staff(patient_id: int, profile_in: NurseProfileUpdate, session: Session = Depends(get_session), current_user: User = Depends(get_current_active_user)):
+    if current_user.role not in ["nurse", "doctor", "ADMIN", "NURSE", "DOCTOR"]:
+        raise HTTPException(status_code=403, detail="Not authorized to edit patient profiles")
+        
+    patient = session.get(Patient, patient_id)
+    if not patient: raise HTTPException(status_code=404, detail="Patient not found")
+    
+    update_data = profile_in.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(patient, key, value)
+        
     session.add(patient)
     session.commit()
     session.refresh(patient)
@@ -70,7 +93,7 @@ def update_my_profile(profile_in: ProfileUpdate, session: Session = Depends(get_
 
 @router.get("/me/history")
 def get_my_history(session: Session = Depends(get_session), current_user: User = Depends(get_current_active_user)):
-    patient = session.exec(select(Patient).where(Patient.email == current_user.username)).first()
+    patient = session.exec(select(Patient).where(Patient.national_id == current_user.national_id)).first()
     if not patient: return []
     
     visits = session.exec(select(Visit).where(Visit.patient_id == patient.id).order_by(Visit.created_at.desc())).all()
@@ -85,6 +108,45 @@ def get_my_history(session: Session = Depends(get_session), current_user: User =
             "treatments": v.clinical_note.prescriptions if v.clinical_note else ""
         })
     return history
+
+class PatientRegister(BaseModel):
+    national_id: str
+    password: str
+    name: str
+
+@router.post("/register")
+def register_patient(req: PatientRegister, session: Session = Depends(get_session)):
+    """Patient self-registration using citizen ID. Links to existing Patient record if found."""
+    # Check if user already exists
+    existing_user = session.exec(select(User).where(User.username == req.national_id)).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="An account with this Citizen ID already exists. Please sign in.")
+    
+    # Create User account with national_id as username
+    new_user = User(
+        username=req.national_id,
+        hashed_password=get_password_hash(req.password),
+        role="PATIENT",
+        national_id=req.national_id
+    )
+    session.add(new_user)
+    
+    # Check if a Patient record already exists (created by nurse for walk-in)
+    existing_patient = session.exec(select(Patient).where(Patient.national_id == req.national_id)).first()
+    linked = existing_patient is not None
+    
+    # If no patient record exists, create a blank one
+    if not existing_patient:
+        new_patient = Patient(
+            name=req.name,
+            age=0,
+            gender="Not specified",
+            national_id=req.national_id
+        )
+        session.add(new_patient)
+    
+    session.commit()
+    return {"message": "Account created successfully", "linked": linked}
 
 @router.post("/", response_model=Patient)
 def create_patient(patient: Patient, session: Session = Depends(get_session), current_user: User = Depends(get_current_active_user)):

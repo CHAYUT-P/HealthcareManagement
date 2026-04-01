@@ -4,7 +4,7 @@ import { Activity, UserPlus, AlertCircle, FileText, CheckCircle2 } from 'lucide-
 import { PatientProfileHeader } from '../../components/nurse/PatientProfileHeader';
 
 export const QueuePage: React.FC = () => {
-    const { token } = useAuth();
+    const { token, logout } = useAuth();
 
     // State
     const [queue, setQueue] = useState<any[]>([]);
@@ -35,6 +35,10 @@ export const QueuePage: React.FC = () => {
             const res = await fetch('http://localhost:8000/nurse/queue/today', {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            if (res.status === 401) {
+                logout();
+                return;
+            }
             if (res.ok) {
                 const data = await res.json();
                 setQueue(data);
@@ -61,6 +65,10 @@ export const QueuePage: React.FC = () => {
             const res = await fetch('http://localhost:8000/nurse/doctors', {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            if (res.status === 401) {
+                logout();
+                return;
+            }
             if (res.ok) setDoctors(await res.json());
         } catch (e) { console.error(e); }
     };
@@ -101,6 +109,10 @@ export const QueuePage: React.FC = () => {
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify(payload)
             });
+            if (res.status === 401) {
+                logout();
+                return;
+            }
             if (res.ok) {
                 fetchQueue();
                 setSelectedVisit(null);
@@ -120,6 +132,10 @@ export const QueuePage: React.FC = () => {
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ doctor_id: parseInt(selectedDoctorId) })
             });
+            if (res.status === 401) {
+                logout();
+                return;
+            }
             if (res.ok) {
                 fetchQueue();
                 setSelectedVisit(null);

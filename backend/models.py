@@ -6,7 +6,8 @@ class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     username: str = Field(index=True, unique=True)
     hashed_password: str
-    role: str  # 'nurse' or 'doctor'
+    role: str  # 'nurse', 'doctor', or 'PATIENT'
+    national_id: Optional[str] = Field(default=None, index=True)  # For linking patients
 
 class Patient(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -16,7 +17,7 @@ class Patient(SQLModel, table=True):
     contact_info: Optional[str] = None
     
     # Phase 4 Medical Fields
-    national_id: Optional[str] = None
+    national_id: Optional[str] = Field(default=None, unique=True, index=True)
     hn: Optional[str] = None
     blood_type: Optional[str] = None
     known_allergies: Optional[str] = None
