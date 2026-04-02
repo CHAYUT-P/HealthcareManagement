@@ -28,7 +28,7 @@ const PatientDashboard = () => {
     const [rescheduleData, setRescheduleData] = useState({ date: '', time: '' });
 
     useEffect(() => {
-        if (user?.role === 'PATIENT' && token) {
+        if (user && user.role !== 'ADMIN' && token) {
             fetchPatientData();
         }
     }, [user, token]);
@@ -114,7 +114,7 @@ const PatientDashboard = () => {
         } catch (e) { console.error(e); }
     };
 
-    if (!user || user.role !== 'PATIENT') {
+    if (!user || user.role === 'ADMIN') {
         return <Navigate to="/" />;
     }
 
@@ -271,7 +271,7 @@ const PatientDashboard = () => {
                                 {appointments.map(a => (
                                     <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem', border: `1px solid ${a.is_doctor_scheduled ? '#86efac' : 'var(--primary-container)'}`, borderRadius: 'var(--radius-lg)', background: a.is_doctor_scheduled ? '#f0fdf4' : 'var(--surface)' }}>
                                         <div>
-                                            {a.is_doctor_scheduled && <span style={{ display: 'inline-block', background: '#dcfce7', color: '#166534', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>👩‍⚕️ Doctor's Appointment (หมอนัดตรวจ)</span>}
+                                            {a.is_doctor_scheduled && <span style={{ display: 'inline-block', background: '#dcfce7', color: '#166534', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Doctor's Appointment</span>}
                                             <strong style={{ fontSize: '1.1rem', color: 'var(--on-surface)', display: 'block' }}>{a.service}</strong>
                                             {a.details && <span style={{ color: 'var(--on-surface-variant)', display: 'block', fontSize: '0.9rem', marginTop: '0.25rem' }}>"{a.details}"</span>}
                                         </div>

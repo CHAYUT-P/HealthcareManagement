@@ -16,6 +16,17 @@ class User(SQLModel, table=True):
     def is_admin(self) -> bool:
         return self.role.upper() == 'ADMIN'
 
+    def get_display_name(self, session) -> str:
+        if self.national_id:
+            from models import Patient
+            from sqlmodel import select
+            patient = session.exec(select(Patient).where(Patient.national_id == self.national_id)).first()
+            if patient:
+                return patient.name
+        if "@" in self.username:
+            return self.username.split("@")[0].replace("_", " ").title()
+        return self.username
+
 class Patient(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
@@ -130,6 +141,7 @@ class Treatment(SQLModel, table=True):
 class Appointment(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     patient_id: int = Field(foreign_key="patient.id")
+    doctor_id: Optional[int] = Field(default=None, foreign_key="user.id")
     date: str
     time: str
     service: str

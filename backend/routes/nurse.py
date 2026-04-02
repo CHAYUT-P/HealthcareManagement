@@ -65,7 +65,7 @@ def get_doctors(session: Session = Depends(get_session), current_user: User = De
         ).all()
         result.append(DoctorWithAvailability(
             id=doc.id,
-            username=doc.username,
+            username=doc.get_display_name(session),
             is_available=len(active_visits) == 0
         ))
     return result

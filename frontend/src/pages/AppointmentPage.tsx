@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, User, Mail, Phone, Stethoscope, ChevronRight, CheckCircle2, LogIn } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
@@ -31,13 +31,35 @@ const AppointmentPage = () => {
     service: '',
     details: '',
     date: '',
-    time: ''
+    time: '',
+    doctorId: '' as '' | number
   });
+  const [doctors, setDoctors] = useState<{id: number, name: string, is_available: boolean}[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  React.useEffect(() => {
+  useEffect(() => {
+    let url = 'http://localhost:8000/patients/doctors';
+    if (formData.date && formData.time) {
+        url += `?date=${formData.date}&time=${formData.time}`;
+    }
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            setDoctors(data);
+            // If the currently selected doctor is no longer available in the new timeslot, clear the selection
+            if (formData.doctorId) {
+                const doc = data.find((d: any) => d.id === Number(formData.doctorId));
+                if (doc && !doc.is_available) {
+                    setFormData(prev => ({ ...prev, doctorId: '' as '' | number }));
+                }
+            }
+        })
+        .catch(console.error);
+  }, [formData.date, formData.time]);
+  
+  useEffect(() => {
     if (user) {
       setFormData(prev => ({
         ...prev,
@@ -67,10 +89,17 @@ const AppointmentPage = () => {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
+      const payload: any = { ...formData };
+      if (!payload.doctorId) {
+          delete payload.doctorId;
+      } else {
+          payload.doctorId = Number(payload.doctorId);
+      }
+
       const res = await fetch('http://localhost:8000/patients/appointments/book', {
         method: 'POST',
         headers,
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
 
       if (!res.ok) {
@@ -97,7 +126,8 @@ const AppointmentPage = () => {
       service: '',
       details: '',
       date: '',
-      time: ''
+      time: '',
+      doctorId: ''
     });
   };
 
@@ -266,6 +296,25 @@ const AppointmentPage = () => {
                         >
                           <option value="">Select a service</option>
                           {services.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="doctorId">Preferred Doctor (Optional)</label>
+                      <div className="input-wrapper">
+                        <User className="input-icon" size={18} />
+                        <select
+                          id="doctorId"
+                          name="doctorId"
+                          value={formData.doctorId}
+                          onChange={handleInputChange}
+                        >
+                          <option value="">Any Available Doctor</option>
+                          {doctors.map(d => (
+                            <option key={d.id} value={d.id} disabled={!d.is_available}>
+                                {d.name} {!d.is_available ? '(Not Available)' : ''}
+                            </option>
+                          ))}
                         </select>
                       </div>
                     </div>
