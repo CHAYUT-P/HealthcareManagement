@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff, LogIn, UserPlus, ArrowRight, CheckCircle2, Phone } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, UserPlus, ArrowRight, CheckCircle2, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './SignInPage.css';
 
@@ -13,23 +13,22 @@ const SignInPage = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const { login } = useAuth();
-  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
-    firstName: '',
-    lastName: '',
-    phone: ''
+    fullName: '',
+    citizenId: '',
+    phone: '',
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -38,54 +37,56 @@ const SignInPage = () => {
         setErrorMsg("Passwords do not match");
         return;
       }
+      if (!formData.citizenId) {
+        setErrorMsg("Citizen ID is required");
+        return;
+      }
       setIsLoading(true);
 
-      setTimeout(() => {
-        const users = JSON.parse(localStorage.getItem('healthcare_users_list') || '[]');
-        const userExists = users.some((u: any) => u.email === formData.email);
-
-        if (userExists) {
-          setErrorMsg("Email already in use. Please sign in.");
+      try {
+        const response = await fetch('http://localhost:8000/patients/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            national_id: formData.citizenId,
+            password: formData.password,
+            name: formData.fullName || 'Patient',
+            email: formData.email,
+          })
+        });
+        if (!response.ok) {
+          const err = await response.json();
+          setErrorMsg(err.detail || "Registration failed");
           setIsLoading(false);
           return;
         }
-
-        users.push({
-          id: Date.now().toString(),
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          phone: formData.phone,
-          password: formData.password
-        });
-        localStorage.setItem('healthcare_users_list', JSON.stringify(users));
-
         setIsLoading(false);
         setIsSuccess(true);
-      }, 1000);
+      } catch (e: any) {
+        setErrorMsg(e.message || "Registration failed");
+        setIsLoading(false);
+      }
     } else {
       setIsLoading(true);
 
-      setTimeout(() => {
-        const users = JSON.parse(localStorage.getItem('healthcare_users_list') || '[]');
-        const validUser = users.find((u: any) => u.email === formData.email && u.password === formData.password);
-
-        if (validUser) {
-          login({
-            id: validUser.id,
-            firstName: validUser.firstName,
-            lastName: validUser.lastName,
-            email: validUser.email,
-            phone: validUser.phone
+      setTimeout(async () => {
+        try {
+          const response = await fetch('http://localhost:8000/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ username: formData.email, password: formData.password })
           });
+          if (!response.ok) throw new Error("Invalid credentials");
+          const data = await response.json();
+
+          login(data.access_token, data.role);
           setIsLoading(false);
           setIsSuccess(true);
-          setTimeout(() => navigate('/'), 1500);
-        } else {
-          setErrorMsg("Invalid email or password");
+        } catch (e: any) {
+          setErrorMsg(e.message || "Invalid credentials");
           setIsLoading(false);
         }
-      }, 1000);
+      }, 500);
     }
   };
 
@@ -109,8 +110,8 @@ const SignInPage = () => {
           <h2>{isSignUp ? 'Account Created!' : 'Welcome Back!'}</h2>
           <p>
             {isSignUp
-              ? `Thank you for joining us, ${formData.firstName}. You can now sign in to your account.`
-              : `Successfully signed in as ${formData.email}. Redirecting you to your dashboard...`}
+              ? `Thank you for joining us. You can now sign in with your Citizen ID.`
+              : `Successfully signed in. Redirecting you to your dashboard...`}
           </p>
           {isSignUp ? (
             <button onClick={() => { setIsSuccess(false); setIsSignUp(false); }} className="btn-primary">Go to Sign In</button>
@@ -152,36 +153,34 @@ const SignInPage = () => {
                   transition={{ duration: 0.3 }}
                   style={{ overflow: 'hidden' }}
                 >
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-                    <div className="form-group">
-                      <label htmlFor="firstName">First Name</label>
-                      <div className="input-wrapper">
-                        <UserPlus className="input-icon" size={18} />
-                        <input
-                          type="text"
-                          id="firstName"
-                          name="firstName"
-                          placeholder="Somchai"
-                          required={isSignUp}
-                          value={formData.firstName}
-                          onChange={handleInputChange}
-                        />
-                      </div>
+                  <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                    <label htmlFor="fullName">Full Name</label>
+                    <div className="input-wrapper">
+                      <UserPlus className="input-icon" size={18} />
+                      <input
+                        type="text"
+                        id="fullName"
+                        name="fullName"
+                        placeholder="Somchai Jaidee"
+                        required={isSignUp}
+                        value={formData.fullName}
+                        onChange={handleInputChange}
+                      />
                     </div>
-                    <div className="form-group">
-                      <label htmlFor="lastName">Last Name</label>
-                      <div className="input-wrapper">
-                        <UserPlus className="input-icon" size={18} />
-                        <input
-                          type="text"
-                          id="lastName"
-                          name="lastName"
-                          placeholder="Jaidee"
-                          required={isSignUp}
-                          value={formData.lastName}
-                          onChange={handleInputChange}
-                        />
-                      </div>
+                  </div>
+                  <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                    <label htmlFor="citizenId">Citizen ID (บัตรประชาชน)</label>
+                    <div className="input-wrapper">
+                      <Mail className="input-icon" size={18} />
+                      <input
+                        type="text"
+                        id="citizenId"
+                        name="citizenId"
+                        placeholder="1-2345-67890-12-3"
+                        required={isSignUp}
+                        value={formData.citizenId}
+                        onChange={handleInputChange}
+                      />
                     </div>
                   </div>
                   <div className="form-group" style={{ marginBottom: '1.5rem' }}>
@@ -192,8 +191,7 @@ const SignInPage = () => {
                         type="tel"
                         id="phone"
                         name="phone"
-                        placeholder="+1 (555) 000-0000"
-                        required={isSignUp}
+                        placeholder="+66 XX XXX XXXX"
                         value={formData.phone}
                         onChange={handleInputChange}
                       />
@@ -203,16 +201,16 @@ const SignInPage = () => {
               )}
             </AnimatePresence>
 
-            <div className="form-group">
-              <label htmlFor="email">Email Address</label>
+            <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+              <label htmlFor="email">{isSignUp ? 'Email Address' : 'Email / Citizen ID'}</label>
               <div className="input-wrapper">
                 <Mail className="input-icon" size={18} />
                 <input
-                  type="email"
+                  type={isSignUp ? "email" : "text"}
                   id="email"
                   name="email"
-                  placeholder="john@example.com"
-                  required
+                  placeholder={isSignUp ? "your@email.com" : "nurse1@example.com or Citizen ID"}
+                  required={!isSignUp}
                   value={formData.email}
                   onChange={handleInputChange}
                 />

@@ -1,4 +1,4 @@
-import React from 'react';
+
 import './Journey.css';
 
 const Journey = () => {
