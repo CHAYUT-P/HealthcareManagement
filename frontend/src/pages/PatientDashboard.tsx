@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { User, Calendar, Edit3, X, Save, Activity } from 'lucide-react';
+import './PatientDashboard.css';
 
 const PatientDashboard = () => {
     const { user, token } = useAuth();
@@ -119,137 +120,137 @@ const PatientDashboard = () => {
     }
 
     return (
-        <div className="container" style={{ paddingTop: '6rem', minHeight: '100vh', paddingBottom: '4rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+        <div className="container patient-dashboard">
+            <div className="patient-dashboard__header">
                 <User size={32} color="var(--primary)" />
                 <h1>Patient Dashboard</h1>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 2fr)', gap: '2rem' }}>
+            <div className="patient-dashboard__grid">
 
                 {/* Left Column: Profile */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                    <div style={{ background: 'var(--surface-container-lowest)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h3 style={{ color: 'var(--primary)' }}>My Profile</h3>
+                <div className="patient-dashboard__column">
+                    <div className="pd-card">
+                        <div className="pd-card__header">
+                            <h3 className="pd-card__title">My Profile</h3>
                             {!isEditing && (
-                                <button onClick={() => setIsEditing(true)} className="btn-signin" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem' }}>
+                                <button onClick={() => setIsEditing(true)} className="btn-signin pd-edit-btn">
                                     <Edit3 size={16} /> Edit
                                 </button>
                             )}
                         </div>
 
                         {isEditing ? (
-                            <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <form onSubmit={handleSaveProfile} className="pd-form">
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '0.25rem' }}>Full Name</label>
-                                    <input type="text" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} required />
+                                    <label className="pd-form__label">Full Name</label>
+                                    <input type="text" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} className="pd-form__input" required />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '0.25rem' }}>Gender</label>
-                                    <select value={editForm.gender} onChange={e => setEditForm(prev => ({ ...prev, gender: e.target.value }))} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }}>
+                                    <label className="pd-form__label">Gender</label>
+                                    <select value={editForm.gender} onChange={e => setEditForm(prev => ({ ...prev, gender: e.target.value }))} className="pd-form__input">
                                         <option value="Male">Male</option>
                                         <option value="Female">Female</option>
                                         <option value="Other">Other</option>
                                     </select>
                                 </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div className="pd-form__row">
                                     <div>
-                                        <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '0.25rem' }}>Email Contact</label>
-                                        <input type="email" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} />
+                                        <label className="pd-form__label">Email Contact</label>
+                                        <input type="email" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} className="pd-form__input" />
                                     </div>
                                     <div>
-                                        <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '0.25rem' }}>Phone Number</label>
-                                        <input type="text" value={editForm.contact_info} onChange={e => setEditForm({ ...editForm, contact_info: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} />
+                                        <label className="pd-form__label">Phone Number</label>
+                                        <input type="text" value={editForm.contact_info} onChange={e => setEditForm({ ...editForm, contact_info: e.target.value })} className="pd-form__input" />
                                     </div>
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '0.25rem' }}>Current Address</label>
-                                    <textarea value={editForm.address} onChange={e => setEditForm({ ...editForm, address: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)', resize: 'vertical' }} rows={2}></textarea>
+                                    <label className="pd-form__label">Current Address</label>
+                                    <textarea value={editForm.address} onChange={e => setEditForm({ ...editForm, address: e.target.value })} className="pd-form__textarea" rows={2}></textarea>
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '0.25rem' }}>Known Allergies</label>
-                                    <input type="text" value={editForm.known_allergies} onChange={e => setEditForm({ ...editForm, known_allergies: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} placeholder="e.g., Peanuts, Penicillin..." />
+                                    <label className="pd-form__label">Known Allergies</label>
+                                    <input type="text" value={editForm.known_allergies} onChange={e => setEditForm({ ...editForm, known_allergies: e.target.value })} className="pd-form__input" placeholder="e.g., Peanuts, Penicillin..." />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '0.25rem' }}>Chronic Diseases</label>
-                                    <input type="text" value={editForm.chronic_diseases} onChange={e => setEditForm({ ...editForm, chronic_diseases: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} placeholder="e.g., Hypertension..." />
+                                    <label className="pd-form__label">Chronic Diseases</label>
+                                    <input type="text" value={editForm.chronic_diseases} onChange={e => setEditForm({ ...editForm, chronic_diseases: e.target.value })} className="pd-form__input" placeholder="e.g., Hypertension..." />
                                 </div>
 
-                                <div style={{ borderTop: '1px solid var(--outline-variant)', paddingTop: '1rem', marginTop: '0.5rem' }}>
-                                    <h4 style={{ fontSize: '0.95rem', marginBottom: '1rem', color: 'var(--on-surface)' }}>Emergency Contact</h4>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                <div className="pd-emergency-section">
+                                    <h4 className="pd-emergency-section__title">Emergency Contact</h4>
+                                    <div className="pd-emergency-fields">
                                         <div>
-                                            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '0.25rem' }}>Contact Name</label>
-                                            <input type="text" value={editForm.emergency_contact_name} onChange={e => setEditForm({ ...editForm, emergency_contact_name: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} />
+                                            <label className="pd-form__label">Contact Name</label>
+                                            <input type="text" value={editForm.emergency_contact_name} onChange={e => setEditForm({ ...editForm, emergency_contact_name: e.target.value })} className="pd-form__input" />
                                         </div>
                                         <div>
-                                            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '0.25rem' }}>Contact Phone</label>
-                                            <input type="text" value={editForm.emergency_contact_phone} onChange={e => setEditForm({ ...editForm, emergency_contact_phone: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} />
+                                            <label className="pd-form__label">Contact Phone</label>
+                                            <input type="text" value={editForm.emergency_contact_phone} onChange={e => setEditForm({ ...editForm, emergency_contact_phone: e.target.value })} className="pd-form__input" />
                                         </div>
                                     </div>
                                 </div>
 
-                                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                                    <button type="button" onClick={handleCancelEdit} className="btn-signin" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
+                                <div className="pd-form__actions">
+                                    <button type="button" onClick={handleCancelEdit} className="btn-signin pd-form__action-btn">
                                         <X size={18} /> Cancel
                                     </button>
-                                    <button type="submit" className="btn-primary" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
+                                    <button type="submit" className="btn-primary pd-form__action-btn">
                                         <Save size={18} /> Save Settings
                                     </button>
                                 </div>
                             </form>
                         ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <div className="pd-profile-view">
                                 {patientInfo ? (
                                     <>
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+                                        <div className="pd-profile-grid">
                                             <div>
-                                                <strong style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', display: 'block' }}>Name</strong>
+                                                <strong className="pd-profile-label">Name</strong>
                                                 <span>{patientInfo.name} ({patientInfo.gender}, {patientInfo.age} yrs)</span>
                                             </div>
                                             <div>
-                                                <strong style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', display: 'block' }}>Email</strong>
+                                                <strong className="pd-profile-label">Email</strong>
                                                 <span>{patientInfo.email || '-'}</span>
                                             </div>
                                             <div>
-                                                <strong style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', display: 'block' }}>Phone Number</strong>
+                                                <strong className="pd-profile-label">Phone Number</strong>
                                                 <span>{patientInfo.contact_info || '-'}</span>
                                             </div>
                                             <div>
-                                                <strong style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', display: 'block' }}>Current Address</strong>
+                                                <strong className="pd-profile-label">Current Address</strong>
                                                 <span>{patientInfo.address || '-'}</span>
                                             </div>
                                         </div>
 
-                                        <div style={{ background: 'var(--surface)', padding: '1rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--outline-variant)', marginTop: '0.5rem' }}>
-                                            <strong style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', display: 'block', marginBottom: '0.5rem' }}>Emergency Contact</strong>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <div className="pd-emergency-card">
+                                            <strong className="pd-emergency-card__label">Emergency Contact</strong>
+                                            <div className="pd-emergency-card__row">
                                                 <span>{patientInfo.emergency_contact_name || 'Not provided'}</span>
                                                 <span>{patientInfo.emergency_contact_phone}</span>
                                             </div>
                                         </div>
 
-                                        <div style={{ marginTop: '1rem', borderTop: '1px solid var(--outline-variant)', paddingTop: '1.5rem' }}>
-                                            <strong style={{ fontSize: '0.95rem', color: 'var(--on-surface)', display: 'block', marginBottom: '1rem' }}>Immovable Medical Tokens</strong>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                        <div className="pd-medical-tokens">
+                                            <strong className="pd-medical-tokens__title">Immovable Medical Tokens</strong>
+                                            <div className="pd-medical-tokens__grid">
                                                 <div>
-                                                    <strong style={{ fontSize: '0.75rem', color: 'var(--on-surface-variant)', display: 'block', textTransform: 'uppercase' }}>Blood Type</strong>
-                                                    <span style={{ fontWeight: 600 }}>{patientInfo.blood_type || '-'}</span>
+                                                    <strong className="pd-token-label">Blood Type</strong>
+                                                    <span className="pd-token-value">{patientInfo.blood_type || '-'}</span>
                                                 </div>
                                                 <div>
-                                                    <strong style={{ fontSize: '0.75rem', color: 'var(--on-surface-variant)', display: 'block', textTransform: 'uppercase' }}>National ID</strong>
-                                                    <span style={{ fontWeight: 600 }}>{patientInfo.national_id || '-'}</span>
+                                                    <strong className="pd-token-label">National ID</strong>
+                                                    <span className="pd-token-value">{patientInfo.national_id || '-'}</span>
                                                 </div>
-                                                <div style={{ gridColumn: '1 / -1' }}>
-                                                    <strong style={{ fontSize: '0.75rem', color: 'var(--on-surface-variant)', display: 'block', textTransform: 'uppercase' }}>Known Allergies</strong>
-                                                    <span style={{ color: '#dc2626', fontWeight: 600 }}>{patientInfo.known_allergies || 'None recorded'}</span>
+                                                <div className="pd-full-width">
+                                                    <strong className="pd-token-label">Known Allergies</strong>
+                                                    <span className="pd-token-allergy">{patientInfo.known_allergies || 'None recorded'}</span>
                                                 </div>
                                             </div>
                                         </div>
                                     </>
                                 ) : (
-                                    <p style={{ color: 'var(--outline)' }}>Loading medical profile...</p>
+                                    <p className="pd-loading-text">Loading medical profile...</p>
                                 )}
                             </div>
                         )}
@@ -257,40 +258,40 @@ const PatientDashboard = () => {
                 </div>
 
                 {/* Right Column: Timelines */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                <div className="patient-dashboard__column">
 
                     {/* Appointments */}
-                    <div style={{ background: 'var(--surface-container-lowest)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-                        <h3 style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                    <div className="pd-card">
+                        <h3 className="pd-card__title--icon">
                             <Calendar size={20} /> Upcoming Appointments
                         </h3>
                         {appointments.length === 0 ? (
-                            <p style={{ color: 'var(--on-surface-variant)' }}>You have no upcoming appointments booked.</p>
+                            <p className="pd-empty-text">You have no upcoming appointments booked.</p>
                         ) : (
-                            <div style={{ display: 'grid', gap: '1rem' }}>
+                            <div className="pd-appointments-grid">
                                 {appointments.map(a => (
-                                    <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem', border: `1px solid ${a.is_doctor_scheduled ? '#86efac' : 'var(--primary-container)'}`, borderRadius: 'var(--radius-lg)', background: a.is_doctor_scheduled ? '#f0fdf4' : 'var(--surface)' }}>
+                                    <div key={a.id} className={`pd-appointment-card ${a.is_doctor_scheduled ? 'pd-appointment-card--doctor' : ''}`}>
                                         <div>
-                                            {a.is_doctor_scheduled && <span style={{ display: 'inline-block', background: '#dcfce7', color: '#166534', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Doctor's Appointment</span>}
-                                            <strong style={{ fontSize: '1.1rem', color: 'var(--on-surface)', display: 'block' }}>{a.service}</strong>
-                                            {a.details && <span style={{ color: 'var(--on-surface-variant)', display: 'block', fontSize: '0.9rem', marginTop: '0.25rem' }}>"{a.details}"</span>}
+                                            {a.is_doctor_scheduled && <span className="pd-doctor-badge">Doctor's Appointment</span>}
+                                            <strong className="pd-appointment-service">{a.service}</strong>
+                                            {a.details && <span className="pd-appointment-details">"{a.details}"</span>}
                                         </div>
-                                        <div style={{ textAlign: 'right' }}>
+                                        <div className="pd-appointment-right">
                                             {reschedulingApptId === a.id ? (
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end', background: 'var(--surface-container-lowest)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }}>
-                                                    <input type="date" value={rescheduleData.date} onChange={e => setRescheduleData({...rescheduleData, date: e.target.value})} style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--outline-variant)' }} />
-                                                    <input type="time" value={rescheduleData.time} onChange={e => setRescheduleData({...rescheduleData, time: e.target.value})} style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--outline-variant)' }} />
-                                                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                                                        <button onClick={handleReschedule} style={{ padding: '0.4rem 1rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>Save Changes</button>
-                                                        <button onClick={() => setReschedulingApptId(null)} style={{ padding: '0.4rem 1rem', background: 'transparent', color: 'var(--on-surface-variant)', border: '1px solid var(--outline-variant)', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>Cancel</button>
+                                                <div className="pd-reschedule-form">
+                                                    <input type="date" value={rescheduleData.date} onChange={e => setRescheduleData({...rescheduleData, date: e.target.value})} className="pd-reschedule-input" />
+                                                    <input type="time" value={rescheduleData.time} onChange={e => setRescheduleData({...rescheduleData, time: e.target.value})} className="pd-reschedule-input" />
+                                                    <div className="pd-reschedule-actions">
+                                                        <button onClick={handleReschedule} className="pd-reschedule-save">Save Changes</button>
+                                                        <button onClick={() => setReschedulingApptId(null)} className="pd-reschedule-cancel">Cancel</button>
                                                     </div>
                                                 </div>
                                             ) : (
                                                 <>
-                                                    <strong style={{ display: 'block', color: 'var(--primary)' }}>{a.date}</strong>
-                                                    <span style={{ color: 'var(--on-surface-variant)', display: 'block', marginBottom: '0.5rem' }}>{a.time}</span>
+                                                    <strong className="pd-appointment-date">{a.date}</strong>
+                                                    <span className="pd-appointment-time">{a.time}</span>
                                                     {!a.is_doctor_scheduled && (
-                                                        <button onClick={() => { setReschedulingApptId(a.id); setRescheduleData({ date: a.date, time: a.time }); }} style={{ padding: '0.3rem 0.8rem', background: 'transparent', color: 'var(--primary)', border: '1px solid var(--primary)', borderRadius: 'var(--radius-full)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
+                                                        <button onClick={() => { setReschedulingApptId(a.id); setRescheduleData({ date: a.date, time: a.time }); }} className="pd-btn-reschedule">
                                                             Reschedule
                                                         </button>
                                                     )}
@@ -304,61 +305,61 @@ const PatientDashboard = () => {
                     </div>
 
                     {/* Medical History */}
-                    <div style={{ background: 'var(--surface-container-lowest)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-                        <h3 style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                    <div className="pd-card">
+                        <h3 className="pd-card__title--icon">
                             <Activity size={20} /> Medical Treatment History
                         </h3>
                         {history.length === 0 ? (
-                            <p style={{ color: 'var(--on-surface-variant)' }}>No previous visits recorded.</p>
+                            <p className="pd-empty-text">No previous visits recorded.</p>
                         ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                            <div className="pd-history-list">
                                 {history.map((h, i) => (
-                                    <div key={i} style={{ display: 'flex', gap: '1.5rem', position: 'relative' }}>
-                                        <div style={{ width: '2px', background: 'var(--primary-container)', position: 'absolute', left: '11px', top: '24px', bottom: '-1.5rem', zIndex: 0 }}></div>
-                                        <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--primary)', flexShrink: 0, zIndex: 1, marginTop: '2px', border: '4px solid var(--surface-container-lowest)' }}></div>
-                                        <div style={{ background: 'var(--surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--outline-variant)', flex: 1 }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                                                <h4 style={{ color: 'var(--primary)' }}>Visit on {new Date(h.date).toLocaleDateString()}</h4>
-                                                <span style={{ fontSize: '0.9rem', color: 'var(--on-surface-variant)' }}>Dr. {h.doctor_name.split('@')[0]}</span>
+                                    <div key={i} className="pd-history-item">
+                                        <div className="pd-history-line"></div>
+                                        <div className="pd-history-dot"></div>
+                                        <div className="pd-history-card">
+                                            <div className="pd-history-card__header">
+                                                <h4 className="pd-history-card__date">Visit on {new Date(h.date).toLocaleDateString()}</h4>
+                                                <span className="pd-history-card__doctor">Dr. {h.doctor_name.split('@')[0]}</span>
                                             </div>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+                                            <div className="pd-history-card__grid">
                                                 <div>
-                                                    <strong style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)' }}>Outcome Diagnosis</strong>
-                                                    <p style={{ marginTop: '0.25rem', fontWeight: 500, color: 'var(--on-surface)' }}>{h.diagnosis || 'Pending'}</p>
+                                                    <strong className="pd-history-section-label">Outcome Diagnosis</strong>
+                                                    <p className="pd-history-diagnosis">{h.diagnosis || 'Pending'}</p>
                                                 </div>
                                                 {(h.treatments || (h.prescription_items && h.prescription_items.length > 0)) && (
                                                     <div>
-                                                        <strong style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)' }}>Prescriptions</strong>
-                                                        {h.treatments && <p style={{ marginTop: '0.25rem', color: 'var(--on-surface)', whiteSpace: 'pre-wrap' }}>{h.treatments}</p>}
+                                                        <strong className="pd-history-section-label">Prescriptions</strong>
+                                                        {h.treatments && <p className="pd-history-treatments">{h.treatments}</p>}
                                                         {h.prescription_items && h.prescription_items.length > 0 && (
-                                                            <ul style={{ margin: '0.5rem 0 0 1.25rem', padding: 0, color: 'var(--on-surface)' }}>
+                                                            <ul className="pd-history-rx-list">
                                                                 {h.prescription_items.map((pi: any, idx: number) => (
-                                                                    <li key={idx} style={{ marginBottom: '0.25rem' }}>{pi.quantity}x {pi.name}</li>
+                                                                    <li key={idx} className="pd-history-rx-item">{pi.quantity}x {pi.name}</li>
                                                                 ))}
                                                             </ul>
                                                         )}
                                                     </div>
                                                 )}
                                                 {h.next_appointment && (
-                                                    <div style={{ marginTop: '0.5rem', background: '#eff6ff', borderLeft: '4px solid #3b82f6', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-                                                        <strong style={{ color: '#1d4ed8', fontSize: '0.9rem', display: 'block', marginBottom: '0.25rem' }}>Next Appointment Scheduled</strong>
-                                                        <span style={{ color: '#1e3a8a', display: 'block', fontWeight: 600 }}>{h.next_appointment.date} at {h.next_appointment.time}</span>
-                                                        <span style={{ color: '#3b82f6', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>Reason: {h.next_appointment.note}</span>
+                                                    <div className="pd-next-appointment">
+                                                        <strong className="pd-next-appointment__title">Next Appointment Scheduled</strong>
+                                                        <span className="pd-next-appointment__datetime">{h.next_appointment.date} at {h.next_appointment.time}</span>
+                                                        <span className="pd-next-appointment__reason">Reason: {h.next_appointment.note}</span>
                                                     </div>
                                                 )}
                                                 {(h.grand_total !== undefined && h.grand_total > 0) && (
-                                                    <div style={{ marginTop: '1rem', background: 'var(--surface-variant)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }}>
-                                                        <h5 style={{ margin: '0 0 0.5rem 0', fontSize: '0.95rem', color: 'var(--on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Billing Summary</h5>
-                                                        <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--on-surface)' }}>
+                                                    <div className="pd-billing">
+                                                        <h5 className="pd-billing__title">Billing Summary</h5>
+                                                        <div className="pd-billing__grid">
+                                                            <div className="pd-billing__row">
                                                                 <span>Treatment Fee</span>
                                                                 <span>${(h.treatment_fee || 0).toFixed(2)}</span>
                                                             </div>
-                                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--on-surface)' }}>
+                                                            <div className="pd-billing__row">
                                                                 <span>Medications</span>
                                                                 <span>${(h.medication_cost || 0).toFixed(2)}</span>
                                                             </div>
-                                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.05rem', color: 'var(--on-surface)', fontWeight: 700, borderTop: '1px solid var(--outline-variant)', paddingTop: '0.75rem', marginTop: '0.25rem' }}>
+                                                            <div className="pd-billing__total">
                                                                 <span>Grand Total</span>
                                                                 <span>${(h.grand_total || 0).toFixed(2)}</span>
                                                             </div>

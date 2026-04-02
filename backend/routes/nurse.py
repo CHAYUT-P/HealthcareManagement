@@ -84,7 +84,7 @@ def assign_doctor(
     if not visit: raise HTTPException(status_code=404, detail="Visit not found")
     
     doctor = session.get(User, req.doctor_id)
-    if not doctor or doctor.role != "doctor": raise HTTPException(status_code=400, detail="Invalid doctor assigned")
+    if not doctor or doctor.role.lower() != "doctor": raise HTTPException(status_code=400, detail="Invalid doctor assigned")
     
     # Check if doctor is currently available
     busy_visit = session.exec(
