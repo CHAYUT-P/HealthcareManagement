@@ -317,7 +317,9 @@ export const QueuePage: React.FC = () => {
                                         >
                                             <option value="">-- Choose a Doctor --</option>
                                             {doctors.map(d => (
-                                                <option key={d.id} value={d.id}>Dr. {d.username.split('@')[0]}</option>
+                                                <option key={d.id} value={d.id} disabled={!d.is_available}>
+                                                    {d.is_available ? '🟢' : '🔴'} Dr. {d.username.split('@')[0]} {d.is_available ? '(Available)' : '(Busy)'}
+                                                </option>
                                             ))}
                                         </select>
                                     </div>

@@ -27,7 +27,7 @@ def add_vitals(
     visit_id: int,
     vitals_in: VitalsCreate,
     session: Session = Depends(get_session),
-    current_user: User = Depends(require_role(["nurse"]))
+    current_user: User = Depends(require_role(["nurse", "NURSE"]))
 ):
     visit = session.get(Visit, visit_id)
     if not visit:
@@ -45,9 +45,30 @@ def add_vitals(
     session.refresh(vitals)
     return vitals
 
-@router.get("/doctors", response_model=List[User])
-def get_doctors(session: Session = Depends(get_session), current_user: User = Depends(require_role(["nurse"]))):
-    return session.exec(select(User).where(User.role == "doctor")).all()
+class DoctorWithAvailability(BaseModel):
+    id: int
+    username: str
+    is_available: bool
+
+@router.get("/doctors", response_model=List[DoctorWithAvailability])
+def get_doctors(session: Session = Depends(get_session), current_user: User = Depends(require_role(["nurse", "NURSE"]))):
+    doctors = session.exec(select(User).where(User.role.in_(["doctor", "DOCTOR"]))).all()
+    result = []
+    
+    from models import Visit
+    for doc in doctors:
+        active_visits = session.exec(
+            select(Visit).where(
+                Visit.assigned_doctor_id == doc.id,
+                Visit.status.in_(["In Consultation", "Ready for Doctor"])
+            )
+        ).all()
+        result.append(DoctorWithAvailability(
+            id=doc.id,
+            username=doc.username,
+            is_available=len(active_visits) == 0
+        ))
+    return result
 
 class AssignDoctorRequest(BaseModel):
     doctor_id: int
@@ -57,13 +78,27 @@ def assign_doctor(
     visit_id: int, 
     req: AssignDoctorRequest, 
     session: Session = Depends(get_session), 
-    current_user: User = Depends(require_role(["nurse"]))
+    current_user: User = Depends(require_role(["nurse", "NURSE"]))
 ):
     visit = session.get(Visit, visit_id)
     if not visit: raise HTTPException(status_code=404, detail="Visit not found")
     
     doctor = session.get(User, req.doctor_id)
     if not doctor or doctor.role != "doctor": raise HTTPException(status_code=400, detail="Invalid doctor assigned")
+    
+    # Check if doctor is currently available
+    busy_visit = session.exec(
+        select(Visit).where(
+            Visit.assigned_doctor_id == doctor.id,
+            Visit.status.in_(["In Consultation", "Ready for Doctor"])
+        )
+    ).first()
+    
+    if busy_visit:
+        raise HTTPException(
+            status_code=400, 
+            detail="Doctor is currently busy with another patient. The previous patient must be sent to billing first."
+        )
         
     visit.assigned_doctor_id = req.doctor_id
     visit.status = "In Consultation"
@@ -73,7 +108,7 @@ def assign_doctor(
     return visit
 
 @router.get("/queue/today")
-def get_queue_today(session: Session = Depends(get_session), current_user: User = Depends(require_role(["nurse"]))):
+def get_queue_today(session: Session = Depends(get_session), current_user: User = Depends(require_role(["nurse", "NURSE"]))):
     from datetime import datetime, timedelta, timezone
     cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
     visits = session.exec(
@@ -135,7 +170,7 @@ class BillingFinalizeRequest(BaseModel):
     treatment_fee: float
 
 @router.get("/billing/queue")
-def get_billing_queue(session: Session = Depends(get_session), current_user: User = Depends(require_role(["nurse"]))):
+def get_billing_queue(session: Session = Depends(get_session), current_user: User = Depends(require_role(["nurse", "NURSE"]))):
     visits = session.exec(
         select(Visit).where(Visit.status == "PENDING_PAYMENT")
     ).all()
@@ -166,7 +201,7 @@ def finalize_billing(
     visit_id: int,
     req: BillingFinalizeRequest,
     session: Session = Depends(get_session),
-    current_user: User = Depends(require_role(["nurse"]))
+    current_user: User = Depends(require_role(["nurse", "NURSE"]))
 ):
     visit = session.get(Visit, visit_id)
     if not visit or visit.status != "PENDING_PAYMENT":
@@ -200,3 +235,41 @@ def finalize_billing(
     
     grand_total = total + visit.treatment_fee
     return {"success": True, "total_amount": grand_total}
+
+class AppointmentRescheduleReq(BaseModel):
+    date: str
+    time: str
+
+from models import Appointment
+
+@router.put("/appointments/{appt_id}/reschedule", response_model=Appointment)
+def nurse_reschedule_appointment(
+    appt_id: int, 
+    req: AppointmentRescheduleReq, 
+    session: Session = Depends(get_session), 
+    current_user: User = Depends(require_role(["nurse", "NURSE"]))
+):
+    appt = session.get(Appointment, appt_id)
+    if not appt:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+        
+    if not appt.is_doctor_scheduled:
+        raise HTTPException(status_code=403, detail="Nurses can only reschedule follow-up appointments scheduled by a doctor.")
+        
+    conflict = session.exec(
+        select(Appointment).where(
+            Appointment.date == req.date, 
+            Appointment.time == req.time,
+            Appointment.status != "cancelled"
+        )
+    ).first()
+    
+    if conflict and conflict.id != appt_id:
+        raise HTTPException(status_code=400, detail="This time slot is already booked.")
+        
+    appt.date = req.date
+    appt.time = req.time
+    session.add(appt)
+    session.commit()
+    session.refresh(appt)
+    return appt

@@ -31,7 +31,7 @@ export default function App() {
               <Route path="/signin" element={<SignInPage />} />
               {/* Nurse Roles - Unified Dashboard */}
               <Route path="/nurse/dashboard" element={
-                <ProtectedRoute allowedRoles={['nurse']}>
+                <ProtectedRoute allowedRoles={['nurse', 'NURSE']}>
                   <NurseDashboard />
                 </ProtectedRoute>
               } />
@@ -42,7 +42,7 @@ export default function App() {
               <Route path="/nurse/appointments" element={<Navigate to="/nurse/dashboard" replace />} />
 
               <Route path="/doctor" element={
-                <ProtectedRoute allowedRoles={['doctor']}>
+                <ProtectedRoute allowedRoles={['doctor', 'DOCTOR']}>
                   <DoctorDashboard />
                 </ProtectedRoute>
               } />

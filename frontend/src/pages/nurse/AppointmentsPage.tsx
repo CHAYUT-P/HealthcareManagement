@@ -10,6 +10,9 @@ export const AppointmentsPage: React.FC = () => {
     const [dateFilter, setDateFilter] = useState('');
     const [sortAsc, setSortAsc] = useState(true);
 
+    const [reschedulingApptId, setReschedulingApptId] = useState<number | null>(null);
+    const [rescheduleData, setRescheduleData] = useState({ date: '', time: '' });
+
     useEffect(() => {
         fetchAppointments();
     }, []);
@@ -33,6 +36,24 @@ export const AppointmentsPage: React.FC = () => {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleReschedule = async () => {
+        try {
+            const res = await fetch(`http://localhost:8000/nurse/appointments/${reschedulingApptId}/reschedule`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify(rescheduleData)
+            });
+            if (res.ok) {
+                setReschedulingApptId(null);
+                fetchAppointments();
+                alert('Appointment successfully rescheduled.');
+            } else {
+                const err = await res.json();
+                alert(err.detail);
+            }
+        } catch (e) { console.error(e); }
     };
 
     const filteredAppointments = appointments.filter(a => {
@@ -133,6 +154,7 @@ export const AppointmentsPage: React.FC = () => {
                                     <th style={{ padding: '1rem' }}>Service</th>
                                     <th style={{ padding: '1rem' }}>Reason for Visit</th>
                                     <th style={{ padding: '1rem' }}>Status</th>
+                                    <th style={{ padding: '1rem' }}>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -166,6 +188,31 @@ export const AppointmentsPage: React.FC = () => {
                                             }}>
                                                 {a.status.toUpperCase()}
                                             </span>
+                                        </td>
+                                        <td style={{ padding: '1rem' }}>
+                                            {a.status === 'scheduled' && (
+                                                reschedulingApptId === a.id ? (
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                                        <input type="date" value={rescheduleData.date} onChange={e => setRescheduleData({...rescheduleData, date: e.target.value})} style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--outline-variant)' }} />
+                                                        <input type="time" value={rescheduleData.time} onChange={e => setRescheduleData({...rescheduleData, time: e.target.value})} style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--outline-variant)' }} />
+                                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                            <button onClick={handleReschedule} style={{ padding: '0.2rem 0.5rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>Save</button>
+                                                            <button onClick={() => setReschedulingApptId(null)} style={{ padding: '0.2rem 0.5rem', background: 'transparent', color: 'var(--on-surface-variant)', border: '1px solid var(--outline-variant)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>Cancel</button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    a.is_doctor_scheduled ? (
+                                                        <button 
+                                                            onClick={() => { setReschedulingApptId(a.id); setRescheduleData({ date: a.date, time: a.time }); }} 
+                                                            style={{ padding: '0.3rem 0.8rem', background: 'transparent', color: 'var(--primary)', border: '1px solid var(--primary)', borderRadius: 'var(--radius-full)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
+                                                        >
+                                                            Reschedule
+                                                        </button>
+                                                    ) : (
+                                                        <span style={{ color: 'var(--outline)', fontSize: '0.8rem' }}>Patient booked</span>
+                                                    )
+                                                )
+                                            )}
                                         </td>
                                     </tr>
                                 ))}

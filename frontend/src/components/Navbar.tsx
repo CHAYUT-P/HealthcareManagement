@@ -32,11 +32,10 @@ const Navbar = () => {
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               {user.role === 'ADMIN' && <Link to="/admin" className="btn-signin">Admin Panel</Link>}
               {(!user.role || user.role === 'PATIENT') && <Link to="/patient" className="btn-signin">Patient Profile</Link>}
-              {user.role === 'nurse' && (
+              {(user.role === 'nurse' || user.role === 'NURSE') && (
                 <Link to="/nurse/dashboard" className="btn-signin" style={{ background: 'transparent', border: '1px solid var(--primary)', color: 'var(--primary)' }}>Nurse Dashboard</Link>
               )}
-              {user.role === 'doctor' && <Link to="/doctor" className="btn-signin">Doctor Dashboard</Link>}
-              {(user.role === 'NURSE' || user.role === 'DOCTOR') && <Link to="/staff" className="btn-signin">Staff Portal</Link>}
+              {(user.role === 'doctor' || user.role === 'DOCTOR') && <Link to="/doctor" className="btn-signin">Doctor Dashboard</Link>}
               <button onClick={handleLogout} className="btn-signin" style={{ background: 'transparent', border: '1px solid var(--border)' }}>Logout</button>
             </div>
           ) : (

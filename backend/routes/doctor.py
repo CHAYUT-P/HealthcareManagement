@@ -27,7 +27,7 @@ class ClinicalNoteCreate(BaseModel):
     follow_up_note: Optional[str] = None
 
 @router.get("/current-patient")
-def get_current_patient(session: Session = Depends(get_session), current_user: User = Depends(require_role(["doctor"]))):
+def get_current_patient(session: Session = Depends(get_session), current_user: User = Depends(require_role(["doctor", "DOCTOR"]))):
     from sqlmodel import select
     visit = session.exec(
         select(Visit)
@@ -49,7 +49,7 @@ def add_consultation(
     visit_id: int,
     note_in: ClinicalNoteCreate,
     session: Session = Depends(get_session),
-    current_user: User = Depends(require_role(["doctor"]))
+    current_user: User = Depends(require_role(["doctor", "DOCTOR"]))
 ):
     visit = session.get(Visit, visit_id)
     if not visit or visit.assigned_doctor_id != current_user.id:

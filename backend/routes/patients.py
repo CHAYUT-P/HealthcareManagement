@@ -326,6 +326,17 @@ def book_appointment(req: AppointmentBookingReq, session: Session = Depends(get_
             session.commit()
             session.refresh(patient)
             
+    conflict = session.exec(
+        select(Appointment).where(
+            Appointment.date == req.date, 
+            Appointment.time == req.time,
+            Appointment.status != "cancelled"
+        )
+    ).first()
+    
+    if conflict:
+        raise HTTPException(status_code=400, detail="This time slot is already booked.")
+            
     appt = Appointment(
         patient_id=patient.id,
         date=req.date,
@@ -340,6 +351,43 @@ def book_appointment(req: AppointmentBookingReq, session: Session = Depends(get_
     session.refresh(appt)
     return appt
 
+class AppointmentRescheduleReq(BaseModel):
+    date: str
+    time: str
+
+@router.put("/appointments/{appt_id}/reschedule", response_model=Appointment)
+def reschedule_appointment(
+    appt_id: int, 
+    req: AppointmentRescheduleReq, 
+    session: Session = Depends(get_session), 
+    current_user: User = Depends(get_current_active_user)
+):
+    appt = session.get(Appointment, appt_id)
+    if not appt:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+        
+    if appt.is_doctor_scheduled:
+        raise HTTPException(status_code=403, detail="You cannot reschedule a follow-up appointment scheduled by a doctor. Please contact the clinic.")
+        
+    conflict = session.exec(
+        select(Appointment).where(
+            Appointment.date == req.date, 
+            Appointment.time == req.time,
+            Appointment.status != "cancelled"
+        )
+    ).first()
+    
+    if conflict and conflict.id != appt_id:
+        raise HTTPException(status_code=400, detail="This time slot is already booked.")
+        
+    appt.date = req.date
+    appt.time = req.time
+    session.add(appt)
+    session.commit()
+    session.refresh(appt)
+    return appt
+
+
 class AppointmentWithPatient(BaseModel):
     id: int
     patient_id: int
@@ -350,6 +398,7 @@ class AppointmentWithPatient(BaseModel):
     doctor_name: str
     details: Optional[str] = None
     status: str
+    is_doctor_scheduled: bool
 
 @router.get("/appointments/all", response_model=List[AppointmentWithPatient])
 def get_all_appointments(session: Session = Depends(get_session), current_user: User = Depends(require_role(["nurse", "doctor", "ADMIN", "NURSE", "DOCTOR"]))):
@@ -365,6 +414,7 @@ def get_all_appointments(session: Session = Depends(get_session), current_user: 
             service=appt.service,
             doctor_name=appt.doctor_name,
             details=appt.details,
-            status=appt.status
+            status=appt.status,
+            is_doctor_scheduled=appt.is_doctor_scheduled
         ))
     return result

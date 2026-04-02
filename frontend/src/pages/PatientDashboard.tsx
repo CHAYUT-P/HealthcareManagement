@@ -24,6 +24,9 @@ const PatientDashboard = () => {
         emergency_contact_phone: ''
     });
 
+    const [reschedulingApptId, setReschedulingApptId] = useState<number | null>(null);
+    const [rescheduleData, setRescheduleData] = useState({ date: '', time: '' });
+
     useEffect(() => {
         if (user?.role === 'PATIENT' && token) {
             fetchPatientData();
@@ -89,6 +92,24 @@ const PatientDashboard = () => {
                 const updated = await res.json();
                 setPatientInfo(updated);
                 setIsEditing(false);
+            }
+        } catch (e) { console.error(e); }
+    };
+
+    const handleReschedule = async () => {
+        try {
+            const res = await fetch(`http://localhost:8000/patients/appointments/${reschedulingApptId}/reschedule`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify(rescheduleData)
+            });
+            if (res.ok) {
+                setReschedulingApptId(null);
+                fetchPatientData();
+                alert('Appointment successfully rescheduled.');
+            } else {
+                const err = await res.json();
+                alert(err.detail);
             }
         } catch (e) { console.error(e); }
     };
@@ -255,8 +276,26 @@ const PatientDashboard = () => {
                                             {a.details && <span style={{ color: 'var(--on-surface-variant)', display: 'block', fontSize: '0.9rem', marginTop: '0.25rem' }}>"{a.details}"</span>}
                                         </div>
                                         <div style={{ textAlign: 'right' }}>
-                                            <strong style={{ display: 'block', color: 'var(--primary)' }}>{a.date}</strong>
-                                            <span style={{ color: 'var(--on-surface-variant)' }}>{a.time}</span>
+                                            {reschedulingApptId === a.id ? (
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end', background: 'var(--surface-container-lowest)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }}>
+                                                    <input type="date" value={rescheduleData.date} onChange={e => setRescheduleData({...rescheduleData, date: e.target.value})} style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--outline-variant)' }} />
+                                                    <input type="time" value={rescheduleData.time} onChange={e => setRescheduleData({...rescheduleData, time: e.target.value})} style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--outline-variant)' }} />
+                                                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                                        <button onClick={handleReschedule} style={{ padding: '0.4rem 1rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>Save Changes</button>
+                                                        <button onClick={() => setReschedulingApptId(null)} style={{ padding: '0.4rem 1rem', background: 'transparent', color: 'var(--on-surface-variant)', border: '1px solid var(--outline-variant)', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>Cancel</button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <strong style={{ display: 'block', color: 'var(--primary)' }}>{a.date}</strong>
+                                                    <span style={{ color: 'var(--on-surface-variant)', display: 'block', marginBottom: '0.5rem' }}>{a.time}</span>
+                                                    {!a.is_doctor_scheduled && (
+                                                        <button onClick={() => { setReschedulingApptId(a.id); setRescheduleData({ date: a.date, time: a.time }); }} style={{ padding: '0.3rem 0.8rem', background: 'transparent', color: 'var(--primary)', border: '1px solid var(--primary)', borderRadius: 'var(--radius-full)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
+                                                            Reschedule
+                                                        </button>
+                                                    )}
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
