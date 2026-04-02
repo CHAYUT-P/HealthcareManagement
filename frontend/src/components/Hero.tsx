@@ -26,7 +26,7 @@ const Hero = () => {
         
         <div className="hero-image-container">
           <img 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCofejYUY5Cc-Pgu2WZEaHlWAXWcowXLegkM57p_Zj_oDCF_7KTYJfkuNUmoE1As6D-HyyZHVIAWXLvmhZC_-KPcvZcXR0wLxuJgy_j7YQ7j9lH262tcJI11svZtXTbajpp2uBdL7eQQz6UixEQKh0FnM8VrADtMs46DQZLRzmnk97CWXqEldFnTgAE0ONmq-FD_To4Fm23YUpdVG0ApsQud0i6iz-JpQqxI0UolRqemhSNM4i5qLuW-EhFxcJVNynp-_rnioRtrsqc" 
+            src="https://vsqclinic.com/wp-content/uploads/2025/09/%E0%B8%84%E0%B8%A5%E0%B8%B4%E0%B8%99%E0%B8%B4%E0%B8%81%E0%B9%80%E0%B8%AA%E0%B8%A3%E0%B8%B4%E0%B8%A1%E0%B8%84%E0%B8%A7%E0%B8%B2%E0%B8%A1%E0%B8%87%E0%B8%B2%E0%B8%A1%E0%B8%AA%E0%B8%B0%E0%B8%AD%E0%B8%B2%E0%B8%94.jpg" 
             alt="Modern clinic reception" 
             className="hero-image"
             referrerPolicy="no-referrer"
@@ -37,7 +37,7 @@ const Hero = () => {
             </div>
             <div className="floating-text">
               <h4>Trusted Excellence</h4>
-              <p>Over 15,000 satisfied patients served annually.</p>
+              <p>Track your Health.</p>
             </div>
           </div>
         </div>

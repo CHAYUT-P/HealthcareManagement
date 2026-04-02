@@ -10,14 +10,14 @@ const services = [
     iconColor: '#2f6378'
   },
   {
-    title: 'Pediatrics',
+    title: 'Children',
     description: 'Dedicated pediatricians providing specialized care for your children\'s growth.',
     icon: 'child_care',
     color: '#bfedd6',
     iconColor: '#3d6655'
   },
   {
-    title: 'Telehealth',
+    title: 'Medical',
     description: 'Access top-tier medical consultations from the comfort of your own home.',
     icon: 'videocam',
     color: '#c6e9e7',
