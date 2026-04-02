@@ -238,7 +238,7 @@ const PatientDashboard = () => {
                                                     <span style={{ fontWeight: 600 }}>{patientInfo.blood_type || '-'}</span>
                                                 </div>
                                                 <div>
-                                                    <strong style={{ fontSize: '0.75rem', color: 'var(--on-surface-variant)', display: 'block', textTransform: 'uppercase' }}>ID Number</strong>
+                                                    <strong style={{ fontSize: '0.75rem', color: 'var(--on-surface-variant)', display: 'block', textTransform: 'uppercase' }}>National ID</strong>
                                                     <span style={{ fontWeight: 600 }}>{patientInfo.national_id || '-'}</span>
                                                 </div>
                                                 <div style={{ gridColumn: '1 / -1' }}>

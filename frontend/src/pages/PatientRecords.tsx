@@ -155,7 +155,7 @@ const PatientRecords = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '0.25rem' }}>Citizen ID</label>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '0.25rem' }}>National ID</label>
                                     <input type="text" value={editForm.national_id} onChange={e => setEditForm(prev => ({ ...prev, national_id: e.target.value }))} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} required />
                                 </div>
 

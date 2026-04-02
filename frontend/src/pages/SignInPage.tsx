@@ -38,7 +38,7 @@ const SignInPage = () => {
         return;
       }
       if (!formData.citizenId) {
-        setErrorMsg("Citizen ID is required");
+        setErrorMsg("National ID is required");
         return;
       }
       setIsLoading(true);
@@ -110,7 +110,7 @@ const SignInPage = () => {
           <h2>{isSignUp ? 'Account Created!' : 'Welcome Back!'}</h2>
           <p>
             {isSignUp
-              ? `Thank you for joining us. You can now sign in with your Citizen ID.`
+              ? `Thank you for joining us. You can now sign in with your National ID.`
               : `Successfully signed in. Redirecting you to your dashboard...`}
           </p>
           {isSignUp ? (
@@ -169,7 +169,7 @@ const SignInPage = () => {
                     </div>
                   </div>
                   <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                    <label htmlFor="citizenId">Citizen ID (บัตรประชาชน)</label>
+                    <label htmlFor="citizenId">National ID (บัตรประชาชน)</label>
                     <div className="input-wrapper">
                       <Mail className="input-icon" size={18} />
                       <input
@@ -202,14 +202,14 @@ const SignInPage = () => {
             </AnimatePresence>
 
             <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-              <label htmlFor="email">{isSignUp ? 'Email Address' : 'Email / Citizen ID'}</label>
+              <label htmlFor="email">{isSignUp ? 'Email Address' : 'Email / National ID'}</label>
               <div className="input-wrapper">
                 <Mail className="input-icon" size={18} />
                 <input
                   type={isSignUp ? "email" : "text"}
                   id="email"
                   name="email"
-                  placeholder={isSignUp ? "your@email.com" : "nurse1@example.com or Citizen ID"}
+                  placeholder={isSignUp ? "your@email.com" : "nurse1@example.com or National ID"}
                   required={!isSignUp}
                   value={formData.email}
                   onChange={handleInputChange}

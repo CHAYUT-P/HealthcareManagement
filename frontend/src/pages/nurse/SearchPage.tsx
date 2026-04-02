@@ -150,7 +150,7 @@ export const SearchPage: React.FC = () => {
     const handleRegisterPatient = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newPatient.name || !newPatient.national_id) {
-            alert('Name and Citizen ID are required.');
+            alert('Name and National ID are required.');
             return;
         }
         setIsRegistering(true);
@@ -315,7 +315,7 @@ export const SearchPage: React.FC = () => {
                                     </div>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
                                         <div>
-                                            <label style={labelStyle}>Citizen ID (บัตรประชาชน) <span style={{ color: '#dc2626' }}>*</span></label>
+                                            <label style={labelStyle}>National ID (บัตรประชาชน) <span style={{ color: '#dc2626' }}>*</span></label>
                                             <input type="text" value={newPatient.national_id} onChange={e => setNewPatient({ ...newPatient, national_id: e.target.value })} style={inputStyle} placeholder="1-2345-67890-12-3" required />
                                         </div>
                                         <div>
@@ -442,7 +442,7 @@ export const SearchPage: React.FC = () => {
                                             </div>
                                         </div>
                                         <div>
-                                            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '0.25rem' }}>Citizen ID</label>
+                                            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '0.25rem' }}>National ID</label>
                                             <input type="text" value={editForm.national_id} onChange={e => setEditForm(prev => ({ ...prev, national_id: e.target.value }))} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} required />
                                         </div>
 

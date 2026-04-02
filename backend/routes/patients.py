@@ -174,7 +174,7 @@ def register_patient(req: PatientRegister, session: Session = Depends(get_sessio
     # Check if user already exists
     existing_user = session.exec(select(User).where(User.username == req.national_id)).first()
     if existing_user:
-        raise HTTPException(status_code=400, detail="An account with this Citizen ID already exists. Please sign in.")
+        raise HTTPException(status_code=400, detail="An account with this National ID already exists. Please sign in.")
     
     # Create User account with national_id as username
     new_user = User(
