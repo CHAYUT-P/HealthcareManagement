@@ -331,6 +331,27 @@
     font-weight: 600;
 }
 
+.pd-appointment-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.pd-btn-cancel-appt {
+    padding: 0.3rem 0.8rem;
+    background: transparent;
+    color: #dc2626;
+    border: 1px solid #dc2626;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.pd-btn-cancel-appt:hover {
+    background: #fef2f2;
+}
+
 /* History Timeline */
 .pd-history-list {
     display: flex;

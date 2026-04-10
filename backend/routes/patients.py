@@ -9,6 +9,22 @@ from auth import get_current_active_user, get_password_hash, get_optional_curren
 
 router = APIRouter(prefix="/patients", tags=["patients"])
 
+def check_patient_duplicates(session: Session, national_id: str = None, email: str = None, contact_info: str = None, exclude_patient_id: int = None):
+    """Check for duplicate national_id, email, or contact_info before saving."""
+    from sqlmodel import or_
+    if national_id and national_id.strip():
+        existing = session.exec(select(Patient).where(Patient.national_id == national_id.strip())).first()
+        if existing and (exclude_patient_id is None or existing.id != exclude_patient_id):
+            raise HTTPException(status_code=400, detail="A patient with this National ID already exists.")
+    if email and email.strip():
+        existing = session.exec(select(Patient).where(Patient.email == email.strip())).first()
+        if existing and (exclude_patient_id is None or existing.id != exclude_patient_id):
+            raise HTTPException(status_code=400, detail="A patient with this email already exists.")
+    if contact_info and contact_info.strip():
+        existing = session.exec(select(Patient).where(Patient.contact_info == contact_info.strip())).first()
+        if existing and (exclude_patient_id is None or existing.id != exclude_patient_id):
+            raise HTTPException(status_code=400, detail="A patient with this phone number already exists.")
+
 @router.get("/", response_model=List[Patient])
 def get_patients(name: Optional[str] = None, session: Session = Depends(get_session), current_user: User = Depends(get_current_active_user)):
     statement = select(Patient)
@@ -96,6 +112,13 @@ def update_my_profile(profile_in: ProfileUpdate, session: Session = Depends(get_
         raise HTTPException(status_code=404, detail="Patient not found. Please open your Health Profile first to create your record.")
     
     update_data = profile_in.dict(exclude_unset=True)
+    check_patient_duplicates(
+        session,
+        national_id=update_data.get('national_id'),
+        email=update_data.get('email'),
+        contact_info=update_data.get('contact_info'),
+        exclude_patient_id=patient.id
+    )
     for key, value in update_data.items():
         setattr(patient, key, value)
     
@@ -118,6 +141,13 @@ def update_patient_profile_by_staff(patient_id: int, profile_in: NurseProfileUpd
     if not patient: raise HTTPException(status_code=404, detail="Patient not found")
     
     update_data = profile_in.dict(exclude_unset=True)
+    check_patient_duplicates(
+        session,
+        national_id=update_data.get('national_id'),
+        email=update_data.get('email'),
+        contact_info=update_data.get('contact_info'),
+        exclude_patient_id=patient.id
+    )
     for key, value in update_data.items():
         setattr(patient, key, value)
         
@@ -191,6 +221,7 @@ def register_patient(req: PatientRegister, session: Session = Depends(get_sessio
     
     # If no patient record exists, create a blank one
     if not existing_patient:
+        check_patient_duplicates(session, national_id=req.national_id, email=req.email)
         new_patient = Patient(
             name=req.name,
             email=req.email,
@@ -210,6 +241,7 @@ def register_patient(req: PatientRegister, session: Session = Depends(get_sessio
 
 @router.post("/", response_model=Patient)
 def create_patient(patient: Patient, session: Session = Depends(get_session), current_user: User = Depends(get_current_active_user)):
+    check_patient_duplicates(session, national_id=patient.national_id, email=patient.email, contact_info=patient.contact_info)
     session.add(patient)
     session.commit()
     session.refresh(patient)
@@ -245,13 +277,30 @@ def create_visit(patient_id: int, session: Session = Depends(get_session), curre
 from pydantic import BaseModel
 class QueueRequest(BaseModel):
     patient_id: int
+    appointment_id: Optional[int] = None
+    triage_level: Optional[str] = "Green"
 
 @router.post("/queue", response_model=Visit)
 def add_to_queue(req: QueueRequest, session: Session = Depends(get_session), current_user: User = Depends(get_current_active_user)):
     patient = session.get(Patient, req.patient_id)
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
-    visit = Visit(patient_id=patient.id, status="Waiting for Triage", triage_level="Green")
+    visit = Visit(patient_id=patient.id, status="Waiting for Triage", triage_level=req.triage_level)
+    
+    if req.appointment_id:
+        appt = session.get(Appointment, req.appointment_id)
+        if appt and appt.patient_id == patient.id:
+            visit.doctor_id = appt.doctor_id
+            session.add(visit)
+            session.commit()
+            session.refresh(visit)
+            
+            appt.status = "completed"
+            appt.visit_id = visit.id
+            session.add(appt)
+            session.commit()
+            return visit
+            
     session.add(visit)
     session.commit()
     session.refresh(visit)
@@ -355,7 +404,25 @@ def get_public_doctors(session: Session = Depends(get_session), date: Optional[s
         for appt in busy_appointments:
             if appt.doctor_id:
                 busy_doc_ids.add(appt.doctor_id)
-        if len(busy_appointments) >= len(doctors):
+
+        from models import DoctorBlockRule
+        from datetime import datetime
+        import calendar
+        
+        try:
+            dt = datetime.strptime(date, "%Y-%m-%d")
+            requested_day = calendar.day_name[dt.weekday()]
+            
+            rules = session.exec(select(DoctorBlockRule)).all()
+            for b in rules:
+                date_match = (not b.is_recurring and b.date == date) or (b.is_recurring and b.day_of_week and b.day_of_week.lower() == requested_day.lower())
+                if date_match:
+                    if b.is_all_day or (b.start_time and b.end_time and b.start_time <= time <= b.end_time):
+                        busy_doc_ids.add(b.doctor_id)
+        except Exception:
+            pass
+
+        if len(busy_doc_ids) >= len(doctors):
             all_busy = True
             
     result = []
@@ -367,6 +434,7 @@ def get_public_doctors(session: Session = Depends(get_session), date: Optional[s
 class AppointmentBookingReq(BaseModel):
     firstName: str
     lastName: str
+    nationalId: Optional[str] = None
     email: str
     phone: str
     service: str
@@ -378,7 +446,11 @@ class AppointmentBookingReq(BaseModel):
 @router.post("/appointments/book", response_model=Appointment)
 def book_appointment(req: AppointmentBookingReq, session: Session = Depends(get_session), current_user: Optional[User] = Depends(get_optional_current_user)):
     patient = None
-    if current_user and current_user.national_id:
+    
+    if req.nationalId:
+        patient = session.exec(select(Patient).where(Patient.national_id == req.nationalId)).first()
+        
+    if not patient and current_user and current_user.national_id:
         patient = session.exec(select(Patient).where(Patient.national_id == current_user.national_id)).first()
     
     if not patient:
@@ -389,7 +461,12 @@ def book_appointment(req: AppointmentBookingReq, session: Session = Depends(get_
         )).first()
         
         if not patient:
-            patient = Patient(name=full_name, email=req.email, contact_info=req.phone, age=0, gender="Not specified")
+            patient = Patient(name=full_name, email=req.email, contact_info=req.phone, national_id=req.nationalId, age=0, gender="Not specified")
+            session.add(patient)
+            session.commit()
+            session.refresh(patient)
+        elif req.nationalId and not patient.national_id:
+            patient.national_id = req.nationalId
             session.add(patient)
             session.commit()
             session.refresh(patient)
@@ -400,16 +477,35 @@ def book_appointment(req: AppointmentBookingReq, session: Session = Depends(get_
         Appointment.status != "cancelled"
     )
     
-    # If a specific doctor is requested, ensure they are free
-    if req.doctorId:
-        doc_conflict = session.exec(conflict_query.where(Appointment.doctor_id == req.doctorId)).first()
-        if doc_conflict:
-            raise HTTPException(status_code=400, detail="The selected doctor is not available at this time.")
+    from models import DoctorBlockRule
+    import calendar
+    from datetime import datetime
     
-    # Ensure there's at least one free slot (total appointments < total doctors)
-    total_appointments = len(session.exec(conflict_query).all())
+    busy_docs_count = set()
+    for app in session.exec(conflict_query).all():
+        if app.doctor_id:
+            busy_docs_count.add(app.doctor_id)
+            
+    try:
+        dt = datetime.strptime(req.date, "%Y-%m-%d")
+        requested_day = calendar.day_name[dt.weekday()]
+        rules = session.exec(select(DoctorBlockRule)).all()
+        for b in rules:
+            date_match = (not b.is_recurring and b.date == req.date) or (b.is_recurring and b.day_of_week and b.day_of_week.lower() == requested_day.lower())
+            if date_match:
+                if b.is_all_day or (b.start_time and b.end_time and b.start_time <= req.time <= b.end_time):
+                    busy_docs_count.add(b.doctor_id)
+    except Exception:
+        pass
+
+    # If a specific doctor is requested, ensure they are free
+    if req.doctorId and req.doctorId in busy_docs_count:
+        raise HTTPException(status_code=400, detail="The selected doctor is not available at this time.")
+    
     total_doctors = len(session.exec(select(User).where(User.role.in_(["doctor", "DOCTOR"]))).all())
-    if total_appointments >= total_doctors:
+    
+    # If no specific doctor was requested but all doctors are busy
+    if len(busy_docs_count) >= total_doctors:
         raise HTTPException(status_code=400, detail="There are no doctors available for this time slot.")
             
     doc_name = "Pending"
@@ -479,11 +575,31 @@ def reschedule_appointment(
     session.refresh(appt)
     return appt
 
+@router.put("/appointments/{appt_id}/cancel", response_model=Appointment)
+def cancel_appointment(
+    appt_id: int, 
+    session: Session = Depends(get_session), 
+    current_user: User = Depends(get_current_active_user)
+):
+    appt = session.get(Appointment, appt_id)
+    if not appt:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+        
+    if appt.is_doctor_scheduled:
+        raise HTTPException(status_code=403, detail="You cannot cancel a follow-up appointment scheduled by a doctor. Please contact the clinic.")
+        
+    appt.status = "cancelled"
+    session.add(appt)
+    session.commit()
+    session.refresh(appt)
+    return appt
+
 
 class AppointmentWithPatient(BaseModel):
     id: int
     patient_id: int
     patient_name: str
+    patient_national_id: Optional[str] = None
     date: str
     time: str
     service: str
@@ -501,6 +617,7 @@ def get_all_appointments(session: Session = Depends(get_session), current_user: 
             id=appt.id,
             patient_id=patient.id,
             patient_name=patient.name,
+            patient_national_id=patient.national_id,
             date=appt.date,
             time=appt.time,
             service=appt.service,

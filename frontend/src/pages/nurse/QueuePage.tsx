@@ -25,7 +25,10 @@ export const QueuePage: React.FC = () => {
         if (token) {
             fetchQueue();
             fetchDoctors();
-            const interval = setInterval(fetchQueue, 5000);
+            const interval = setInterval(() => {
+                fetchQueue();
+                fetchDoctors();
+            }, 5000);
             return () => clearInterval(interval);
         }
     }, [token]);
@@ -93,15 +96,20 @@ export const QueuePage: React.FC = () => {
     };
 
     const submitTriage = async (visitId: number) => {
-        if (!triageForm.chief_complaint) return alert('Chief complaint is required');
+        if (!triageForm.blood_pressure || !triageForm.heart_rate || !triageForm.temperature || 
+            !triageForm.oxygen_saturation || !triageForm.weight || !triageForm.height || 
+            !triageForm.chief_complaint) {
+            return alert('All triage information fields are required.');
+        }
+
         try {
             const payload = {
-                blood_pressure: triageForm.blood_pressure || null,
-                heart_rate: triageForm.heart_rate ? parseInt(triageForm.heart_rate) : null,
-                temperature: triageForm.temperature ? parseFloat(triageForm.temperature) : null,
-                oxygen_saturation: triageForm.oxygen_saturation ? parseInt(triageForm.oxygen_saturation) : null,
-                weight: triageForm.weight ? parseFloat(triageForm.weight) : null,
-                height: triageForm.height ? parseFloat(triageForm.height) : null,
+                blood_pressure: triageForm.blood_pressure,
+                heart_rate: parseInt(triageForm.heart_rate),
+                temperature: parseFloat(triageForm.temperature),
+                oxygen_saturation: parseInt(triageForm.oxygen_saturation),
+                weight: parseFloat(triageForm.weight),
+                height: parseFloat(triageForm.height),
                 chief_complaint: triageForm.chief_complaint,
             };
             const res = await fetch(`http://localhost:8000/nurse/visits/${visitId}/vitals`, {
@@ -178,7 +186,14 @@ export const QueuePage: React.FC = () => {
                                     >
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <div>
-                                                <strong style={{ fontSize: '1.1rem', color: selectedVisit?.id === v.id && activeTab === 'triage' ? 'var(--on-primary-container)' : 'var(--on-surface)' }}>{v.patient.name}</strong>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <strong style={{ fontSize: '1.1rem', color: selectedVisit?.id === v.id && activeTab === 'triage' ? 'var(--on-primary-container)' : 'var(--on-surface)' }}>{v.patient.name}</strong>
+                                                    {v.triage_level !== 'Green' && (
+                                                        <span style={{ background: v.triage_level === 'Red' ? '#fef2f2' : '#fffbeb', color: getTriageColor(v.triage_level), border: `1px solid ${getTriageColor(v.triage_level)}`, padding: '0.1rem 0.5rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600 }}>
+                                                            {v.triage_level.toUpperCase()}
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <div style={{ fontSize: '0.9rem', color: 'var(--on-surface-variant)', marginTop: '0.25rem' }}>
                                                     HN: {v.patient.hn} • Wait: {Math.floor((Date.now() - new Date(v.created_at.includes('Z') ? v.created_at : v.created_at + '+00:00').getTime()) / 60000)}m
                                                 </div>
@@ -213,7 +228,14 @@ export const QueuePage: React.FC = () => {
                                     >
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <div>
-                                                <strong style={{ fontSize: '1.1rem', color: selectedVisit?.id === v.id && activeTab === 'ready' ? '#065f46' : 'var(--on-surface)' }}>{v.patient.name}</strong>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <strong style={{ fontSize: '1.1rem', color: selectedVisit?.id === v.id && activeTab === 'ready' ? '#065f46' : 'var(--on-surface)' }}>{v.patient.name}</strong>
+                                                    {v.triage_level !== 'Green' && (
+                                                        <span style={{ background: v.triage_level === 'Red' ? '#fef2f2' : '#fffbeb', color: getTriageColor(v.triage_level), border: `1px solid ${getTriageColor(v.triage_level)}`, padding: '0.1rem 0.5rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600 }}>
+                                                            {v.triage_level.toUpperCase()}
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <div style={{ fontSize: '0.9rem', color: 'var(--on-surface-variant)', marginTop: '0.25rem' }}>
                                                     Triage complete • Chief Complaint: {v.vitals?.chief_complaint?.substring(0, 20)}...
                                                 </div>
@@ -251,28 +273,28 @@ export const QueuePage: React.FC = () => {
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                                         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1.5rem' }}>
                                             <div>
-                                                <label style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', display: 'block', marginBottom: '0.25rem' }}>Blood Pressure (mmHg)</label>
-                                                <input type="text" value={triageForm.blood_pressure} onChange={e => setTriageForm({ ...triageForm, blood_pressure: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} placeholder="120/80" />
+                                                <label style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', display: 'block', marginBottom: '0.25rem' }}>Blood Pressure (mmHg) <span style={{ color: 'var(--destructive)' }}>*</span></label>
+                                                <input type="text" value={triageForm.blood_pressure} onChange={e => setTriageForm({ ...triageForm, blood_pressure: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} placeholder="120/80" required />
                                             </div>
                                             <div>
-                                                <label style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', display: 'block', marginBottom: '0.25rem' }}>Heart Rate (bpm)</label>
-                                                <input type="number" value={triageForm.heart_rate} onChange={e => setTriageForm({ ...triageForm, heart_rate: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} placeholder="75" />
+                                                <label style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', display: 'block', marginBottom: '0.25rem' }}>Heart Rate (bpm) <span style={{ color: 'var(--destructive)' }}>*</span></label>
+                                                <input type="number" value={triageForm.heart_rate} onChange={e => setTriageForm({ ...triageForm, heart_rate: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} placeholder="75" required />
                                             </div>
                                             <div>
-                                                <label style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', display: 'block', marginBottom: '0.25rem' }}>Temperature (°C)</label>
-                                                <input type="number" step="0.1" value={triageForm.temperature} onChange={e => setTriageForm({ ...triageForm, temperature: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} placeholder="37.0" />
+                                                <label style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', display: 'block', marginBottom: '0.25rem' }}>Temperature (°C) <span style={{ color: 'var(--destructive)' }}>*</span></label>
+                                                <input type="number" step="0.1" value={triageForm.temperature} onChange={e => setTriageForm({ ...triageForm, temperature: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} placeholder="37.0" required />
                                             </div>
                                             <div>
-                                                <label style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', display: 'block', marginBottom: '0.25rem' }}>SpO2 (%)</label>
-                                                <input type="number" value={triageForm.oxygen_saturation} onChange={e => setTriageForm({ ...triageForm, oxygen_saturation: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} placeholder="98" />
+                                                <label style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', display: 'block', marginBottom: '0.25rem' }}>SpO2 (%) <span style={{ color: 'var(--destructive)' }}>*</span></label>
+                                                <input type="number" value={triageForm.oxygen_saturation} onChange={e => setTriageForm({ ...triageForm, oxygen_saturation: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} placeholder="98" required />
                                             </div>
                                             <div>
-                                                <label style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', display: 'block', marginBottom: '0.25rem' }}>Weight (kg)</label>
-                                                <input type="number" step="0.1" value={triageForm.weight} onChange={e => setTriageForm({ ...triageForm, weight: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} placeholder="70" />
+                                                <label style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', display: 'block', marginBottom: '0.25rem' }}>Weight (kg) <span style={{ color: 'var(--destructive)' }}>*</span></label>
+                                                <input type="number" step="0.1" value={triageForm.weight} onChange={e => setTriageForm({ ...triageForm, weight: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} placeholder="70" required />
                                             </div>
                                             <div>
-                                                <label style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', display: 'block', marginBottom: '0.25rem' }}>Height (cm)</label>
-                                                <input type="number" step="0.1" value={triageForm.height} onChange={e => setTriageForm({ ...triageForm, height: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} placeholder="175" />
+                                                <label style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', display: 'block', marginBottom: '0.25rem' }}>Height (cm) <span style={{ color: 'var(--destructive)' }}>*</span></label>
+                                                <input type="number" step="0.1" value={triageForm.height} onChange={e => setTriageForm({ ...triageForm, height: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }} placeholder="175" required />
                                             </div>
                                         </div>
 

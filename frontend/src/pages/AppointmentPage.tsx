@@ -26,6 +26,7 @@ const AppointmentPage = () => {
   const [formData, setFormData] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
+    nationalId: user?.national_id || '',
     email: user?.email || '',
     phone: user?.phone || '',
     service: '',
@@ -65,6 +66,7 @@ const AppointmentPage = () => {
         ...prev,
         firstName: user.firstName || '',
         lastName: user.lastName || '',
+        nationalId: user.national_id || '',
         email: user.email || '',
         phone: user.phone || ''
       }));
@@ -121,6 +123,7 @@ const AppointmentPage = () => {
     setFormData({
       firstName: user?.firstName || '',
       lastName: user?.lastName || '',
+      nationalId: user?.national_id || '',
       email: user?.email || '',
       phone: user?.phone || '',
       service: '',
@@ -248,6 +251,21 @@ const AppointmentPage = () => {
                       </div>
                     </div>
                     <div className="form-group">
+                      <label htmlFor="nationalId">National ID</label>
+                      <div className="input-wrapper">
+                        <User className="input-icon" size={18} />
+                        <input
+                          type="text"
+                          id="nationalId"
+                          name="nationalId"
+                          placeholder="1234567890123"
+                          required
+                          value={formData.nationalId}
+                          onChange={handleInputChange}
+                        />
+                      </div>
+                    </div>
+                    <div className="form-group">
                       <label htmlFor="email">Email Address</label>
                       <div className="input-wrapper">
                         <Mail className="input-icon" size={18} />
@@ -293,6 +311,7 @@ const AppointmentPage = () => {
                           required
                           value={formData.service}
                           onChange={handleInputChange}
+                          style={{ paddingLeft: '2.75rem' }}
                         >
                           <option value="">Select a service</option>
                           {services.map(s => <option key={s} value={s}>{s}</option>)}
@@ -308,6 +327,7 @@ const AppointmentPage = () => {
                           name="doctorId"
                           value={formData.doctorId}
                           onChange={handleInputChange}
+                          style={{ paddingLeft: '2.75rem' }}
                         >
                           <option value="">Any Available Doctor</option>
                           {doctors.map(d => (
@@ -363,6 +383,7 @@ const AppointmentPage = () => {
                           required
                           value={formData.time}
                           onChange={handleInputChange}
+                          style={{ paddingLeft: '2.75rem' }}
                         >
                           <option value="">Select a time</option>
                           {timeSlots.map(t => <option key={t} value={t}>{t}</option>)}

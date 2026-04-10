@@ -3,13 +3,14 @@ import { useAuth } from '../../context/AuthContext';
 import { Search, UserPlus, CalendarPlus, Activity, X, Edit3, Save } from 'lucide-react';
 import { PatientProfileHeader } from '../../components/nurse/PatientProfileHeader';
 
-export const SearchPage: React.FC = () => {
+export const SearchPage: React.FC<{ initialQuery?: string, processApptId?: number | null, onSearchDone?: () => void }> = ({ initialQuery, processApptId, onSearchDone }) => {
     const { token, logout } = useAuth();
 
     // Search State
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState(initialQuery || '');
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [triageLevel, setTriageLevel] = useState('Green');
 
     // Selection State
     const [selectedPatient, setSelectedPatient] = useState<any | null>(null);
@@ -41,6 +42,16 @@ export const SearchPage: React.FC = () => {
         }, 300);
         return () => clearTimeout(debounceTimer);
     }, [searchQuery]);
+
+    useEffect(() => {
+        if (initialQuery) {
+            setSearchQuery(initialQuery);
+            if (onSearchDone) {
+                // Call it so that we don't end up locked in loop if they revisit the tab
+                setTimeout(() => onSearchDone(), 100);
+            }
+        }
+    }, [initialQuery, onSearchDone]);
 
     const fetchSearchResults = async () => {
         try {
@@ -126,7 +137,7 @@ export const SearchPage: React.FC = () => {
             const res = await fetch('http://localhost:8000/patients/queue', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ patient_id: selectedPatient.id })
+                body: JSON.stringify({ patient_id: selectedPatient.id, appointment_id: processApptId || undefined, triage_level: triageLevel })
             });
 
             if (res.status === 401) {
@@ -403,14 +414,26 @@ export const SearchPage: React.FC = () => {
                                             <Edit3 size={18} /> Edit Full Profile
                                         </button>
                                     </div>
-
+                                    
                                     {/* Action Card: Add to Queue */}
-                                    <div style={{ background: 'var(--surface-container-lowest)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', borderTop: '4px solid #10b981', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div>
-                                            <h3 style={{ color: '#10b981', marginBottom: '0.5rem' }}>Patient Registration</h3>
-                                            <p style={{ color: 'var(--on-surface-variant)', margin: 0 }}>Register this patient for today's visit queue.</p>
+                                    <div style={{ background: 'var(--surface-container-lowest)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', borderTop: `4px solid ${triageLevel === 'Red' ? '#dc2626' : triageLevel === 'Yellow' ? '#f59e0b' : '#10b981'}` }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                                            <div>
+                                                <h3 style={{ color: triageLevel === 'Red' ? '#dc2626' : triageLevel === 'Yellow' ? '#b45309' : '#10b981', marginBottom: '0.5rem' }}>Patient Registration</h3>
+                                                <p style={{ color: 'var(--on-surface-variant)', margin: 0 }}>Register this patient for today's visit queue.</p>
+                                            </div>
                                         </div>
-                                        <button onClick={addToQueue} className="btn-primary" style={{ background: '#10b981', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '1rem 2rem', fontSize: '1.1rem', borderRadius: 'var(--radius-full)' }}>
+                                        
+                                        <div style={{ marginBottom: '1.5rem' }}>
+                                            <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: 'var(--on-surface)', marginBottom: '0.5rem' }}>Triage Urgency Level</label>
+                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+                                                <button onClick={() => setTriageLevel('Red')} style={{ padding: '0.75rem', borderRadius: 'var(--radius-md)', border: `2px solid ${triageLevel === 'Red' ? '#dc2626' : 'var(--outline-variant)'}`, background: triageLevel === 'Red' ? '#fef2f2' : 'var(--surface)', color: triageLevel === 'Red' ? '#dc2626' : 'var(--on-surface-variant)', fontWeight: 600, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>🔴 Red (Emergency)</button>
+                                                <button onClick={() => setTriageLevel('Yellow')} style={{ padding: '0.75rem', borderRadius: 'var(--radius-md)', border: `2px solid ${triageLevel === 'Yellow' ? '#f59e0b' : 'var(--outline-variant)'}`, background: triageLevel === 'Yellow' ? '#fffbeb' : 'var(--surface)', color: triageLevel === 'Yellow' ? '#b45309' : 'var(--on-surface-variant)', fontWeight: 600, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>🟡 Yellow (Urgent)</button>
+                                                <button onClick={() => setTriageLevel('Green')} style={{ padding: '0.75rem', borderRadius: 'var(--radius-md)', border: `2px solid ${triageLevel === 'Green' ? '#10b981' : 'var(--outline-variant)'}`, background: triageLevel === 'Green' ? '#ecfdf5' : 'var(--surface)', color: triageLevel === 'Green' ? '#047857' : 'var(--on-surface-variant)', fontWeight: 600, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>🟢 Green (Normal)</button>
+                                            </div>
+                                        </div>
+
+                                        <button onClick={addToQueue} className="btn-primary" style={{ width: '100%', background: triageLevel === 'Red' ? '#dc2626' : triageLevel === 'Yellow' ? '#f59e0b' : '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '1rem', fontSize: '1.1rem', borderRadius: 'var(--radius-lg)' }}>
                                             <CalendarPlus size={20} /> Add to Today's Queue
                                         </button>
                                     </div>

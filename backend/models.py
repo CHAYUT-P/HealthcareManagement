@@ -159,3 +159,24 @@ class Appointment(SQLModel, table=True):
 
     def is_confirmed(self) -> bool:
         return self.status.lower() == "scheduled"
+
+class DoctorStatus(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    doctor_id: int = Field(foreign_key="user.id", unique=True)
+    is_available_now: bool = Field(default=True)
+
+class DoctorUnavailableSlot(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    doctor_id: int = Field(foreign_key="user.id")
+    date: str
+    time: str
+
+class DoctorBlockRule(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    doctor_id: int = Field(foreign_key="user.id")
+    is_recurring: bool = Field(default=False)
+    date: Optional[str] = None
+    day_of_week: Optional[str] = None
+    is_all_day: bool = Field(default=False)
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None

@@ -115,6 +115,23 @@ const PatientDashboard = () => {
         } catch (e) { console.error(e); }
     };
 
+    const handleCancelAppointment = async (id: number) => {
+        if (!confirm("Are you sure you want to cancel this appointment?")) return;
+        try {
+            const res = await fetch(`http://localhost:8000/patients/appointments/${id}/cancel`, {
+                method: 'PUT',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                fetchPatientData();
+                alert('Appointment successfully cancelled.');
+            } else {
+                const err = await res.json();
+                alert(err.detail);
+            }
+        } catch (e) { console.error(e); }
+    };
+
     if (!user || user.role === 'ADMIN') {
         return <Navigate to="/" />;
     }
@@ -291,9 +308,14 @@ const PatientDashboard = () => {
                                                     <strong className="pd-appointment-date">{a.date}</strong>
                                                     <span className="pd-appointment-time">{a.time}</span>
                                                     {!a.is_doctor_scheduled && (
-                                                        <button onClick={() => { setReschedulingApptId(a.id); setRescheduleData({ date: a.date, time: a.time }); }} className="pd-btn-reschedule">
-                                                            Reschedule
-                                                        </button>
+                                                        <div className="pd-appointment-buttons">
+                                                            <button onClick={() => { setReschedulingApptId(a.id); setRescheduleData({ date: a.date, time: a.time }); }} className="pd-btn-reschedule">
+                                                                Reschedule
+                                                            </button>
+                                                            <button onClick={() => handleCancelAppointment(a.id)} className="pd-btn-cancel-appt">
+                                                                Cancel
+                                                            </button>
+                                                        </div>
                                                     )}
                                                 </>
                                             )}

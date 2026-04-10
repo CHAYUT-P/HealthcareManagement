@@ -55,8 +55,12 @@ def get_doctors(session: Session = Depends(get_session), current_user: User = De
     doctors = session.exec(select(User).where(User.role.in_(["doctor", "DOCTOR"]))).all()
     result = []
     
-    from models import Visit
+    from models import Visit, DoctorStatus
     for doc in doctors:
+        doc_status = session.exec(select(DoctorStatus).where(DoctorStatus.doctor_id == doc.id)).first()
+        if doc_status and not doc_status.is_available_now:
+            continue # hide offline doctors from nurse
+            
         active_visits = session.exec(
             select(Visit).where(
                 Visit.assigned_doctor_id == doc.id,
@@ -86,6 +90,12 @@ def assign_doctor(
     doctor = session.get(User, req.doctor_id)
     if not doctor or doctor.role.lower() != "doctor": raise HTTPException(status_code=400, detail="Invalid doctor assigned")
     
+    # Check if doctor is explicitly offline
+    from models import DoctorStatus
+    doc_status = session.exec(select(DoctorStatus).where(DoctorStatus.doctor_id == doctor.id)).first()
+    if doc_status and not doc_status.is_available_now:
+        raise HTTPException(status_code=400, detail="Doctor is currently offline and not accepting patients.")
+
     # Check if doctor is currently available
     busy_visit = session.exec(
         select(Visit).where(
@@ -111,10 +121,17 @@ def assign_doctor(
 def get_queue_today(session: Session = Depends(get_session), current_user: User = Depends(require_role(["nurse", "NURSE"]))):
     from datetime import datetime, timedelta, timezone
     cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+    from sqlalchemy import case
+    order_clause = case(
+        {"Red": 1, "Yellow": 2, "Green": 3},
+        value=Visit.triage_level,
+        else_=4
+    )
     visits = session.exec(
         select(Visit)
         .where(Visit.status != "Discharged")
         .where(Visit.created_at >= cutoff)
+        .order_by(order_clause, Visit.created_at)
     ).all()
 
     result = []

@@ -19,9 +19,40 @@ export const DoctorDashboard: React.FC = () => {
     
     const [followUp, setFollowUp] = useState({ date: '', time: '', note: '' });
 
+    const [isAvailable, setIsAvailable] = useState(true);
+    const [blockouts, setBlockouts] = useState<any[]>([]);
+    const [ruleType, setRuleType] = useState<'SPECIFIC' | 'RECURRING'>('SPECIFIC');
+    const [ruleDate, setRuleDate] = useState('');
+    const [ruleDay, setRuleDay] = useState('Monday');
+    const [timeType, setTimeType] = useState<'ALL_DAY' | 'RANGE'>('ALL_DAY');
+    const [startTime, setStartTime] = useState('');
+    const [endTime, setEndTime] = useState('');
+    const [activeTab, setActiveTab] = useState<'consultation' | 'schedule'>('consultation');
+
     useEffect(() => {
         fetchCurrentPatient();
+        fetchStatusAndBlockouts();
     }, []);
+
+    const fetchStatusAndBlockouts = async () => {
+        try {
+            const resStatus = await fetch('http://localhost:8000/doctor/status', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (resStatus.ok) {
+                const data = await resStatus.json();
+                setIsAvailable(data.is_available_now);
+            }
+
+            const resBlockouts = await fetch('http://localhost:8000/doctor/blockouts', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (resBlockouts.ok) {
+                const data = await resBlockouts.json();
+                setBlockouts(data);
+            }
+        } catch (e) { console.error(e); }
+    };
 
     const fetchCurrentPatient = async () => {
         try {
@@ -72,27 +103,109 @@ export const DoctorDashboard: React.FC = () => {
         }
     };
 
+    const toggleStatus = async (e: any) => {
+        const val = e.target.value === 'available';
+        try {
+            const res = await fetch('http://localhost:8000/doctor/status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ is_available_now: val })
+            });
+            if (res.ok) setIsAvailable(val);
+        } catch(e) { console.error(e); }
+    };
+
+    const addBlockout = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const payload = {
+                is_recurring: ruleType === 'RECURRING',
+                date: ruleType === 'SPECIFIC' ? ruleDate : undefined,
+                day_of_week: ruleType === 'RECURRING' ? ruleDay : undefined,
+                is_all_day: timeType === 'ALL_DAY',
+                start_time: timeType === 'RANGE' ? startTime : undefined,
+                end_time: timeType === 'RANGE' ? endTime : undefined
+            };
+            const res = await fetch('http://localhost:8000/doctor/blockouts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+                const newB = await res.json();
+                if (!blockouts.find(b => b.id === newB.id)) {
+                    setBlockouts([...blockouts, newB]);
+                }
+                setRuleDate('');
+                setStartTime('');
+                setEndTime('');
+            }
+        } catch(e) { console.error(e); }
+    };
+
+    const removeBlockout = async (id: number) => {
+        try {
+            const res = await fetch(`http://localhost:8000/doctor/blockouts/${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                setBlockouts(blockouts.filter(b => b.id !== id));
+            }
+        } catch(e) { console.error(e); }
+    };
+
     if (loading) {
         return <div style={{ display: 'flex', justifyContent: 'center', padding: '10rem' }}>Loading workspace...</div>;
     }
 
     return (
         <div style={{ padding: '6rem 2rem 4rem', maxWidth: '1280px', margin: '0 auto', minHeight: '100vh' }}>
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
+            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <div>
-                    <h1 style={{ color: 'var(--primary)', marginBottom: '0.5rem' }}>Doctor Dashboard - Focus Mode</h1>
+                    <h1 style={{ color: 'var(--primary)', marginBottom: '0.5rem' }}>Doctor Dashboard</h1>
                     <p style={{ color: 'var(--on-surface-variant)', fontSize: '1.1rem' }}>Dr. {user?.username?.split('@')[0]}</p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: isAvailable ? '#dcfce7' : '#fee2e2', padding: '0.5rem 1rem', borderRadius: 'var(--radius-full)' }}>
+                        <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: isAvailable ? '#16a34a' : '#dc2626' }}></span>
+                        <select 
+                            value={isAvailable ? 'available' : 'offline'}
+                            onChange={toggleStatus}
+                            style={{ background: 'transparent', border: 'none', fontWeight: 600, color: isAvailable ? '#166534' : '#991b1b', cursor: 'pointer', outline: 'none', fontSize: '0.95rem' }}
+                        >
+                            <option value="available">Accepting Patients</option>
+                            <option value="offline">Offline / Busy</option>
+                        </select>
+                    </div>
                 </div>
             </header>
 
-            {!currentData ? (
+            <div style={{ display: 'flex', gap: '2rem', marginBottom: '2rem', borderBottom: '2px solid var(--outline-variant)' }}>
+                <button 
+                    onClick={() => setActiveTab('consultation')} 
+                    style={{ background: 'none', border: 'none', fontSize: '1.1rem', fontWeight: activeTab === 'consultation' ? 600 : 400, color: activeTab === 'consultation' ? 'var(--primary)' : 'var(--outline)', cursor: 'pointer', paddingBottom: '0.75rem', borderBottom: activeTab === 'consultation' ? '3px solid var(--primary)' : '3px solid transparent', transform: 'translateY(2px)' }}
+                >
+                    Live Active Patient
+                </button>
+                <button 
+                    onClick={() => setActiveTab('schedule')} 
+                    style={{ background: 'none', border: 'none', fontSize: '1.1rem', fontWeight: activeTab === 'schedule' ? 600 : 400, color: activeTab === 'schedule' ? 'var(--primary)' : 'var(--outline)', cursor: 'pointer', paddingBottom: '0.75rem', borderBottom: activeTab === 'schedule' ? '3px solid var(--primary)' : '3px solid transparent', transform: 'translateY(2px)' }}
+                >
+                    Schedule Management
+                </button>
+            </div>
+
+            {activeTab === 'consultation' && !currentData && (
                 <div style={{ background: 'var(--surface-container-lowest)', padding: '5rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center', outline: '2px dashed var(--outline-variant)' }}>
                     <ClipboardList size={48} style={{ color: 'var(--outline)', margin: '0 auto 1.5rem' }} />
                     <h2 style={{ color: 'var(--on-surface-variant)', marginBottom: '1rem' }}>No Active Patient</h2>
                     <p style={{ color: 'var(--outline)', marginBottom: '2rem' }}>You have no patients currently assigned in your examination room.</p>
                     <button onClick={fetchCurrentPatient} className="btn-primary" style={{ padding: '0.75rem 2rem', borderRadius: 'var(--radius-full)' }}>Refresh Room</button>
                 </div>
-            ) : (
+            )}
+
+            {activeTab === 'consultation' && currentData && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 2fr)', gap: '2rem' }}>
                     {/* Left Column: Read-Only Triage & Medical Context */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -245,6 +358,93 @@ export const DoctorDashboard: React.FC = () => {
                             </div>
                         </form>
                     </div>
+                </div>
+            )}
+
+            {activeTab === 'schedule' && (
+                <div style={{ background: 'var(--surface-container-lowest)', padding: '3rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderTop: '4px solid #f59e0b' }}>
+                    <h2 style={{ color: 'var(--primary)', marginBottom: '0.5rem' }}>Block Out Time Slots</h2>
+                    <p style={{ color: 'var(--on-surface-variant)', marginBottom: '2.5rem' }}>Specific un-bookable hours are strictly hidden from patient appointment bookings. If you do not plan on attending clinic soon, toggle offline near your name above so Nurses won't assign walkin checks to you either.</p>
+                    
+                    <form onSubmit={addBlockout} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '3rem', background: 'var(--surface)', padding: '2rem', borderRadius: 'var(--radius-lg)' }}>
+                        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
+                            <div style={{ flex: 1 }}>
+                                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.75rem', fontWeight: 600 }}>Schedule Type</label>
+                                <select value={ruleType} onChange={e => setRuleType(e.target.value as 'SPECIFIC' | 'RECURRING')} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)', fontSize: '1rem' }}>
+                                    <option value="SPECIFIC">Specific Date</option>
+                                    <option value="RECURRING">Recurring Weekly Schedule</option>
+                                </select>
+                            </div>
+                            
+                            {ruleType === 'SPECIFIC' ? (
+                                <div style={{ flex: 1 }}>
+                                    <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.75rem', fontWeight: 600 }}>Unavailability Date</label>
+                                    <input type="date" required value={ruleDate} onChange={e => setRuleDate(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)', fontSize: '1rem' }} />
+                                </div>
+                            ) : (
+                                <div style={{ flex: 1 }}>
+                                    <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.75rem', fontWeight: 600 }}>Day of the Week</label>
+                                    <select value={ruleDay} onChange={e => setRuleDay(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)', fontSize: '1rem' }}>
+                                        <option value="Monday">Monday</option>
+                                        <option value="Tuesday">Tuesday</option>
+                                        <option value="Wednesday">Wednesday</option>
+                                        <option value="Thursday">Thursday</option>
+                                        <option value="Friday">Friday</option>
+                                        <option value="Saturday">Saturday</option>
+                                        <option value="Sunday">Sunday</option>
+                                    </select>
+                                </div>
+                            )}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-end' }}>
+                            <div style={{ flex: 1 }}>
+                                <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.75rem', fontWeight: 600 }}>Time Type</label>
+                                <select value={timeType} onChange={e => setTimeType(e.target.value as 'ALL_DAY' | 'RANGE')} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)', fontSize: '1rem' }}>
+                                    <option value="ALL_DAY">All Day Block</option>
+                                    <option value="RANGE">Specific Time Range</option>
+                                </select>
+                            </div>
+                            
+                            {timeType === 'RANGE' && (
+                                <>
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.75rem', fontWeight: 600 }}>Start Time</label>
+                                        <input type="time" required value={startTime} onChange={e => setStartTime(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)', fontSize: '1rem' }} />
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.75rem', fontWeight: 600 }}>End Time</label>
+                                        <input type="time" required value={endTime} onChange={e => setEndTime(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)', fontSize: '1rem' }} />
+                                    </div>
+                                </>
+                            )}
+                            
+                            <button type="submit" className="btn-primary" style={{ padding: '0.75rem 2rem', borderRadius: 'var(--radius-md)', fontSize: '1rem', height: '46px' }}>Add Blocked Rule +</button>
+                        </div>
+                    </form>
+
+                    <h3 style={{ marginBottom: '1.5rem', color: 'var(--on-surface)', borderBottom: '1px solid var(--outline-variant)', paddingBottom: '0.5rem' }}>Currently Blocked Slots</h3>
+                    {blockouts.length === 0 ? (
+                        <p style={{ color: 'var(--outline)', fontStyle: 'italic' }}>No blocked time slots assigned right now.</p>
+                    ) : (
+                        <div style={{ display: 'grid', gap: '1rem' }}>
+                            {blockouts.map(b => (
+                                <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fffbeb', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: '1px solid #fcd34d' }}>
+                                    <div style={{ display: 'flex', gap: '3rem' }}>
+                                        <div>
+                                            <span style={{ fontSize: '0.85rem', color: '#92400e', display: 'block', marginBottom: '0.25rem' }}>Date / Day</span>
+                                            <span style={{ fontWeight: 600, color: '#92400e', fontSize: '1.1rem' }}>{b.is_recurring ? `Every ${b.day_of_week}` : b.date}</span>
+                                        </div>
+                                        <div>
+                                            <span style={{ fontSize: '0.85rem', color: '#92400e', display: 'block', marginBottom: '0.25rem' }}>Time Range</span>
+                                            <span style={{ color: '#92400e', fontWeight: 600, fontSize: '1.1rem' }}>{b.is_all_day ? "All Day" : `${b.start_time} - ${b.end_time}`}</span>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => removeBlockout(b.id)} style={{ padding: '0.5rem 1.5rem', background: 'transparent', color: '#dc2626', border: '1px solid #dc2626', borderRadius: 'var(--radius-full)', cursor: 'pointer', fontWeight: 600 }}>Remove</button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
         </div>

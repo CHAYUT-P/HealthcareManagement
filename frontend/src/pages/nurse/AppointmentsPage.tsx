@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Calendar, Clock, Search, Activity } from 'lucide-react';
 
-export const AppointmentsPage: React.FC = () => {
+export const AppointmentsPage: React.FC<{ onProcessCheckIn?: (nationalId: string, apptId: number) => void }> = ({ onProcessCheckIn }) => {
     const { token, logout } = useAuth();
     const [appointments, setAppointments] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -201,16 +201,26 @@ export const AppointmentsPage: React.FC = () => {
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    a.is_doctor_scheduled ? (
-                                                        <button 
-                                                            onClick={() => { setReschedulingApptId(a.id); setRescheduleData({ date: a.date, time: a.time }); }} 
-                                                            style={{ padding: '0.3rem 0.8rem', background: 'transparent', color: 'var(--primary)', border: '1px solid var(--primary)', borderRadius: 'var(--radius-full)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
-                                                        >
-                                                            Reschedule
-                                                        </button>
-                                                    ) : (
-                                                        <span style={{ color: 'var(--outline)', fontSize: '0.8rem' }}>Patient booked</span>
-                                                    )
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                                        {onProcessCheckIn && (
+                                                            <button
+                                                                onClick={() => onProcessCheckIn(a.patient_national_id || a.patient_name, a.id)}
+                                                                style={{ padding: '0.4rem 0.8rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                            >
+                                                                Process Check-in
+                                                            </button>
+                                                        )}
+                                                        {a.is_doctor_scheduled ? (
+                                                            <button 
+                                                                onClick={() => { setReschedulingApptId(a.id); setRescheduleData({ date: a.date, time: a.time }); }} 
+                                                                style={{ padding: '0.3rem 0.8rem', background: 'transparent', color: 'var(--primary)', border: '1px solid var(--primary)', borderRadius: 'var(--radius-full)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
+                                                            >
+                                                                Reschedule
+                                                            </button>
+                                                        ) : (
+                                                            <span style={{ color: 'var(--outline)', fontSize: '0.8rem' }}>Patient booked</span>
+                                                        )}
+                                                    </div>
                                                 )
                                             )}
                                         </td>
