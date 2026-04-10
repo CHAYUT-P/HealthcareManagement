@@ -210,8 +210,18 @@ export const DoctorDashboard: React.FC = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                         <section style={{ background: 'var(--surface-container-lowest)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderTop: '4px solid var(--primary)' }}>
                             <h2 style={{ marginBottom: '1.5rem', color: 'var(--primary)', borderBottom: '1px solid var(--outline-variant)', paddingBottom: '0.5rem' }}>General Information</h2>
-                            <div style={{ display: 'grid', gap: '1rem' }}>
-                                <div><strong style={{ color: 'var(--on-surface-variant)' }}>Name:</strong> <span style={{ fontSize: '1.2rem', display: 'block' }}>{currentData.patient.name}</span></div>
+                                <div>
+                                    <strong style={{ color: 'var(--on-surface-variant)' }}>Name:</strong> 
+                                    <span style={{ fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
+                                        {currentData.patient.name}
+                                        {currentData.visit.triage_level === 'Red' && (
+                                            <span style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', background: '#fee2e2', color: '#dc2626', borderRadius: 'var(--radius-full)', fontWeight: 600 }}>🔴 EMERGENCY</span>
+                                        )}
+                                        {currentData.visit.triage_level === 'Yellow' && (
+                                            <span style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', background: '#fef3c7', color: '#d97706', borderRadius: 'var(--radius-full)', fontWeight: 600 }}>🟡 URGENT</span>
+                                        )}
+                                    </span>
+                                </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
                                     <div><strong style={{ color: 'var(--on-surface-variant)' }}>Age:</strong> <br />{currentData.patient.age} yrs</div>
                                     <div><strong style={{ color: 'var(--on-surface-variant)' }}>Gender:</strong> <br />{currentData.patient.gender}</div>
