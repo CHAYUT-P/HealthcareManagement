@@ -34,14 +34,12 @@ class Patient(SQLModel, table=True):
     gender: str
     contact_info: Optional[str] = None
     
-    # Phase 4 Medical Fields
     national_id: Optional[str] = Field(default=None, unique=True, index=True)
     hn: Optional[str] = None
     blood_type: Optional[str] = None
     known_allergies: Optional[str] = None
     chronic_diseases: Optional[str] = None
     
-    # Phase 5 Contact Fields
     email: Optional[str] = None
     address: Optional[str] = None
     emergency_contact_name: Optional[str] = None
@@ -62,7 +60,6 @@ class Visit(SQLModel, table=True):
     patient_id: int = Field(foreign_key="patient.id")
     assigned_doctor_id: Optional[int] = Field(default=None, foreign_key="user.id")
     status: str = Field(default="Waiting for Triage")
-    # statuses: "Waiting for Triage", "Ready for Doctor", "In Consultation", "Sent to Pharmacy/Billing", "Discharged"
     triage_level: str = Field(default="Green") # "Red", "Yellow", "Green"
     treatment_fee: Optional[float] = Field(default=0.0)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -149,7 +146,6 @@ class Appointment(SQLModel, table=True):
     details: Optional[str] = None
     status: str = Field(default="scheduled") # 'scheduled', 'completed', 'cancelled'
     
-    # Follow-up fields
     is_doctor_scheduled: bool = Field(default=False)
     appointment_note: Optional[str] = None
     created_by_id: Optional[int] = Field(default=None, foreign_key="user.id")

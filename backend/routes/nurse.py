@@ -90,13 +90,11 @@ def assign_doctor(
     doctor = session.get(User, req.doctor_id)
     if not doctor or doctor.role.lower() != "doctor": raise HTTPException(status_code=400, detail="Invalid doctor assigned")
     
-    # Check if doctor is explicitly offline
     from models import DoctorStatus
     doc_status = session.exec(select(DoctorStatus).where(DoctorStatus.doctor_id == doctor.id)).first()
     if doc_status and not doc_status.is_available_now:
         raise HTTPException(status_code=400, detail="Doctor is currently offline and not accepting patients.")
 
-    # Check if doctor is currently available
     busy_visit = session.exec(
         select(Visit).where(
             Visit.assigned_doctor_id == doctor.id,
@@ -228,7 +226,6 @@ def finalize_billing(
     visit.treatment_fee = req.treatment_fee
     
     if not rx:
-        # If no prescription, just complete it
         visit.status = "COMPLETED"
         session.add(visit)
         session.commit()

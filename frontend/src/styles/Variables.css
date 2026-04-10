@@ -1,5 +1,4 @@
 :root {
-  /* Colors */
   --primary: #2f6378;
   --primary-light: #4a7c92;
   --primary-fixed: #bde9ff;
@@ -15,11 +14,9 @@
   --outline-variant: #c0c7cc;
   --background: #f7fafb;
   
-  /* Typography */
   --font-headline: 'Manrope', sans-serif;
   --font-body: 'Inter', sans-serif;
   
-  /* Spacing & Borders */
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
   --radius-2xl: 1.5rem;
@@ -66,7 +63,6 @@ button {
   padding: 0 2rem;
 }
 
-/* Material Icons Helper */
 .material-icons, .material-symbols-outlined {
   font-family: 'Material Symbols Outlined';
   font-weight: normal;

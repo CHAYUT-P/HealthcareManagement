@@ -10,7 +10,6 @@ const PatientDashboard = () => {
     const [appointments, setAppointments] = useState<any[]>([]);
     const [history, setHistory] = useState<any[]>([]);
 
-    // Edit Form State
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState({
         name: '',
@@ -145,7 +144,6 @@ const PatientDashboard = () => {
 
             <div className="patient-dashboard__grid">
 
-                {/* Left Column: Profile */}
                 <div className="patient-dashboard__column">
                     <div className="pd-card">
                         <div className="pd-card__header">
@@ -274,10 +272,8 @@ const PatientDashboard = () => {
                     </div>
                 </div>
 
-                {/* Right Column: Timelines */}
                 <div className="patient-dashboard__column">
 
-                    {/* Appointments */}
                     <div className="pd-card">
                         <h3 className="pd-card__title--icon">
                             <Calendar size={20} /> Upcoming Appointments
@@ -326,7 +322,6 @@ const PatientDashboard = () => {
                         )}
                     </div>
 
-                    {/* Medical History */}
                     <div className="pd-card">
                         <h3 className="pd-card__title--icon">
                             <Activity size={20} /> Medical Treatment History

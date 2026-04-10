@@ -6,17 +6,14 @@ import { PatientProfileHeader } from '../../components/nurse/PatientProfileHeade
 export const SearchPage: React.FC<{ initialQuery?: string, processApptId?: number | null, onSearchDone?: () => void }> = ({ initialQuery, processApptId, onSearchDone }) => {
     const { token, logout } = useAuth();
 
-    // Search State
     const [searchQuery, setSearchQuery] = useState(initialQuery || '');
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [triageLevel, setTriageLevel] = useState('Green');
 
-    // Selection State
     const [selectedPatient, setSelectedPatient] = useState<any | null>(null);
     const [patientHistory, setPatientHistory] = useState<any[]>([]);
 
-    // Profile Edit State
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [editForm, setEditForm] = useState({
         name: '', age: 0, gender: '', national_id: '',
@@ -25,7 +22,6 @@ export const SearchPage: React.FC<{ initialQuery?: string, processApptId?: numbe
         emergency_contact_name: '', emergency_contact_phone: ''
     });
 
-    // New Patient Registration
     const [showRegisterForm, setShowRegisterForm] = useState(false);
     const [isRegistering, setIsRegistering] = useState(false);
     const [newPatient, setNewPatient] = useState({
@@ -47,7 +43,6 @@ export const SearchPage: React.FC<{ initialQuery?: string, processApptId?: numbe
         if (initialQuery) {
             setSearchQuery(initialQuery);
             if (onSearchDone) {
-                // Call it so that we don't end up locked in loop if they revisit the tab
                 setTimeout(() => onSearchDone(), 100);
             }
         }
@@ -218,7 +213,6 @@ export const SearchPage: React.FC<{ initialQuery?: string, processApptId?: numbe
         <div>
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) minmax(400px, 2fr)', gap: '2rem' }}>
 
-                {/* Left Column: Search Bar & Results */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div style={{ position: 'relative' }}>
                         <Search className="input-icon" size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }} />
@@ -239,7 +233,6 @@ export const SearchPage: React.FC<{ initialQuery?: string, processApptId?: numbe
                         />
                     </div>
 
-                    {/* Register New Patient Button */}
                     <button
                         onClick={() => { setShowRegisterForm(!showRegisterForm); setSelectedPatient(null); }}
                         className="btn-primary"
@@ -293,17 +286,14 @@ export const SearchPage: React.FC<{ initialQuery?: string, processApptId?: numbe
                     )}
                 </div>
 
-                {/* Right Column: Profile/Registration Form */}
                 <div>
                     {showRegisterForm ? (
-                        /* ===== NEW PATIENT REGISTRATION FORM ===== */
                         <div style={{ background: 'var(--surface-container-lowest)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderTop: '4px solid var(--primary)' }}>
                             <h3 style={{ color: 'var(--primary)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <UserPlus size={22} /> Register New Walk-in Patient
                             </h3>
 
                             <form onSubmit={handleRegisterPatient} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                {/* Personal Info */}
                                 <fieldset style={{ border: '1px solid var(--outline-variant)', borderRadius: 'var(--radius-lg)', padding: '1.5rem' }}>
                                     <legend style={{ padding: '0 0.5rem', fontWeight: 700, color: 'var(--primary)', fontSize: '0.95rem' }}>Personal Information</legend>
                                     <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem' }}>
@@ -346,7 +336,6 @@ export const SearchPage: React.FC<{ initialQuery?: string, processApptId?: numbe
                                     </div>
                                 </fieldset>
 
-                                {/* Medical Info */}
                                 <fieldset style={{ border: '1px solid var(--outline-variant)', borderRadius: 'var(--radius-lg)', padding: '1.5rem' }}>
                                     <legend style={{ padding: '0 0.5rem', fontWeight: 700, color: '#dc2626', fontSize: '0.95rem' }}>Medical Information</legend>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -371,7 +360,6 @@ export const SearchPage: React.FC<{ initialQuery?: string, processApptId?: numbe
                                     </div>
                                 </fieldset>
 
-                                {/* Emergency Contact */}
                                 <fieldset style={{ border: '1px solid var(--outline-variant)', borderRadius: 'var(--radius-lg)', padding: '1.5rem' }}>
                                     <legend style={{ padding: '0 0.5rem', fontWeight: 700, color: 'var(--on-surface)', fontSize: '0.95rem' }}>Emergency Contact</legend>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -404,7 +392,6 @@ export const SearchPage: React.FC<{ initialQuery?: string, processApptId?: numbe
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
-                            {/* Reusable Profile Header & Action Card */}
                             {!isEditingProfile ? (
                                 <>
                                     <PatientProfileHeader patient={selectedPatient} />
@@ -415,7 +402,6 @@ export const SearchPage: React.FC<{ initialQuery?: string, processApptId?: numbe
                                         </button>
                                     </div>
                                     
-                                    {/* Action Card: Add to Queue */}
                                     <div style={{ background: 'var(--surface-container-lowest)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', borderTop: `4px solid ${triageLevel === 'Red' ? '#dc2626' : triageLevel === 'Yellow' ? '#f59e0b' : '#10b981'}` }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                                             <div>
@@ -439,7 +425,6 @@ export const SearchPage: React.FC<{ initialQuery?: string, processApptId?: numbe
                                     </div>
                                 </>
                             ) : (
-                                /* Edit Mode Form */
                                 <div style={{ background: 'var(--surface-container-lowest)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                                         <h3 style={{ color: 'var(--primary)', margin: 0 }}>Edit Patient Profile</h3>
@@ -524,7 +509,6 @@ export const SearchPage: React.FC<{ initialQuery?: string, processApptId?: numbe
                                 </div>
                             )}
 
-                            {/* Past Treatment History */}
                             <div style={{ background: 'var(--surface-container-lowest)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                                 <h3 style={{ color: 'var(--primary)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <Activity size={20} /> Past Treatment History

@@ -122,7 +122,6 @@ def update_my_profile(profile_in: ProfileUpdate, session: Session = Depends(get_
     for key, value in update_data.items():
         setattr(patient, key, value)
     
-    # Ensure user is linked to this patient
     if not current_user.national_id and patient.national_id:
         current_user.national_id = patient.national_id
         session.add(current_user)
@@ -166,7 +165,6 @@ def get_my_history(session: Session = Depends(get_session), current_user: User =
     for v in visits:
         rx = v.prescription
         
-        # Determine if there is a correlated follow-up appointment
         next_appointment = session.exec(
             select(Appointment).where(Appointment.visit_id == v.id)
         ).first()
@@ -201,12 +199,10 @@ class PatientRegister(BaseModel):
 @router.post("/register")
 def register_patient(req: PatientRegister, session: Session = Depends(get_session)):
     """Patient self-registration using citizen ID. Links to existing Patient record if found."""
-    # Check if user already exists
     existing_user = session.exec(select(User).where(User.username == req.national_id)).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="An account with this National ID already exists. Please sign in.")
     
-    # Create User account with national_id as username
     new_user = User(
         username=req.national_id,
         hashed_password=get_password_hash(req.password),
@@ -215,11 +211,9 @@ def register_patient(req: PatientRegister, session: Session = Depends(get_sessio
     )
     session.add(new_user)
     
-    # Check if a Patient record already exists (created by nurse for walk-in)
     existing_patient = session.exec(select(Patient).where(Patient.national_id == req.national_id)).first()
     linked = existing_patient is not None
     
-    # If no patient record exists, create a blank one
     if not existing_patient:
         check_patient_duplicates(session, national_id=req.national_id, email=req.email)
         new_patient = Patient(
@@ -231,7 +225,6 @@ def register_patient(req: PatientRegister, session: Session = Depends(get_sessio
         )
         session.add(new_patient)
     else:
-        # Update existing record with email if provided
         if not existing_patient.email and req.email:
             existing_patient.email = req.email
             session.add(existing_patient)
@@ -339,7 +332,6 @@ def get_patient_history(patient_id: int, session: Session = Depends(get_session)
 
 @router.get("/queue", response_model=List[Visit])
 def get_queue(session: Session = Depends(get_session), current_user: User = Depends(get_current_active_user)):
-    # Returns all visits not discharged
     visits = session.exec(select(Visit).where(Visit.status != "Discharged")).all()
     return visits
 
@@ -498,13 +490,11 @@ def book_appointment(req: AppointmentBookingReq, session: Session = Depends(get_
     except Exception:
         pass
 
-    # If a specific doctor is requested, ensure they are free
     if req.doctorId and req.doctorId in busy_docs_count:
         raise HTTPException(status_code=400, detail="The selected doctor is not available at this time.")
     
     total_doctors = len(session.exec(select(User).where(User.role.in_(["doctor", "DOCTOR"]))).all())
     
-    # If no specific doctor was requested but all doctors are busy
     if len(busy_docs_count) >= total_doctors:
         raise HTTPException(status_code=400, detail="There are no doctors available for this time slot.")
             
@@ -561,9 +551,6 @@ def reschedule_appointment(
     total_appointments = len(session.exec(conflict_query).all())
     total_doctors = len(session.exec(select(User).where(User.role.in_(["doctor", "DOCTOR"]))).all())
     
-    # Since we are just moving the appointment, if moving to a completely full slot, reject
-    # But if one of those slots is literally the appointment itself (which happens if date/time are same), then it's fine.
-    # We resolve this by ensuring any conflicts found don't include appt_id
     real_conflicts = [c for c in session.exec(conflict_query).all() if c.id != appt_id]
     if len(real_conflicts) >= total_doctors:
         raise HTTPException(status_code=400, detail="There are no doctors available for this time slot.")

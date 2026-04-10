@@ -29,14 +29,12 @@ export default function App() {
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/appointment" element={<AppointmentPage />} />
               <Route path="/signin" element={<SignInPage />} />
-              {/* Nurse Roles - Unified Dashboard */}
               <Route path="/nurse/dashboard" element={
                 <ProtectedRoute allowedRoles={['nurse', 'NURSE']}>
                   <NurseDashboard />
                 </ProtectedRoute>
               } />
               
-              {/* Fallback route to redirect old nurse routes if manually visited */}
               <Route path="/nurse/search" element={<Navigate to="/nurse/dashboard" replace />} />
               <Route path="/nurse/queue" element={<Navigate to="/nurse/dashboard" replace />} />
               <Route path="/nurse/appointments" element={<Navigate to="/nurse/dashboard" replace />} />

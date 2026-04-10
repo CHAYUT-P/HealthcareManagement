@@ -65,12 +65,11 @@ When the backend starts for the first time, it automatically creates several acc
 
 **Staff Accounts:**
 - **Admin:** `admin@example.com` / `password123`
-- **Nurse:** `admin_nurse@example.com` / `password123`
-- **Doctor:** `admin_doctor@example.com` / `password123`
+- **Nurses (1-2):** `nurse1@example.com` to `nurse2@example.com` / `password123`
+- **Doctors (1-4):** `doctor1@example.com` to `doctor4@example.com` / `password123`
 
 **Patient Accounts:**
-- **Patient 1:** `1-2345-67890-12-3` / `password123`
-- **Patient 2:** `9-8765-43210-99-9` / `password123`
-- **Manual Enrollment:** `123456789` / (Password set during registration)
+- **Patients (1-5):** Log in using National ID `1-0000-00000-01-1` through `1-0000-00000-05-1` / `password123`
+- **Manual Enrollment:** Register dynamically by creating a walk-in queue ticket or booking as a guest!
 
 > You can also try creating a brand new patient by selecting **"Continue as Guest"** on the Book Appointment page and confirming your details. Then, sign in using your Citizen ID to see your brand new profile!

@@ -6,14 +6,12 @@ import { PatientProfileHeader } from '../../components/nurse/PatientProfileHeade
 export const QueuePage: React.FC = () => {
     const { token, logout } = useAuth();
 
-    // State
     const [queue, setQueue] = useState<any[]>([]);
     const [doctors, setDoctors] = useState<any[]>([]);
     const [selectedVisit, setSelectedVisit] = useState<any | null>(null);
     const [activeTab, setActiveTab] = useState<'triage' | 'ready'>('triage');
     const [isLoading, setIsLoading] = useState(true);
 
-    // Forms
     const [triageForm, setTriageForm] = useState({
         blood_pressure: '', heart_rate: '', temperature: '',
         respiratory_rate: '', oxygen_saturation: '', weight: '',
@@ -46,7 +44,6 @@ export const QueuePage: React.FC = () => {
                 const data = await res.json();
                 setQueue(data);
 
-                // If the selected visit's status changed globally, refresh local selection
                 if (selectedVisit) {
                     const latestMatch = data.find((v: any) => v.id === selectedVisit.id);
                     if (!latestMatch || latestMatch.status !== selectedVisit.status) {
@@ -160,10 +157,8 @@ export const QueuePage: React.FC = () => {
         <div>
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(350px, 1fr) minmax(500px, 2fr)', gap: '2rem' }}>
 
-                {/* Left Column: Combined Queue Lists */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
-                    {/* Waiting for Triage List */}
                     <div style={{ background: 'var(--surface-container-lowest)', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
                         <h3 style={{ padding: '1.5rem', margin: 0, background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <Activity size={20} /> Waiting for Triage ({waitingQueue.length})
@@ -205,7 +200,6 @@ export const QueuePage: React.FC = () => {
                         </ul>
                     </div>
 
-                    {/* Ready for Doctor List */}
                     <div style={{ background: 'var(--surface-container-lowest)', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
                         <h3 style={{ padding: '1.5rem', margin: 0, background: '#10b981', color: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <CheckCircle2 size={20} /> Ready for Doctor ({readyQueue.length})
@@ -249,7 +243,6 @@ export const QueuePage: React.FC = () => {
 
                 </div>
 
-                {/* Right Column: Context Profiles */}
                 <div>
                     {!selectedVisit ? (
                         <div style={{ background: 'var(--surface-container-lowest)', padding: '5rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center', outline: '2px dashed var(--outline-variant)' }}>
@@ -260,10 +253,8 @@ export const QueuePage: React.FC = () => {
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
-                            {/* Reusable Profile Header (Compact Mode) */}
                             <PatientProfileHeader patient={selectedVisit.patient} compact={true} />
 
-                            {/* Conditional Rendering based on active tab */}
                             {activeTab === 'triage' && (
                                 <div style={{ background: 'var(--surface-container-lowest)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                                     <h3 style={{ color: 'var(--primary)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -316,7 +307,6 @@ export const QueuePage: React.FC = () => {
                                         <UserPlus size={20} /> Assign Doctor & Send to Exam Room
                                     </h3>
 
-                                    {/* Read-only Vitals summary */}
                                     <div style={{ background: 'var(--surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--outline-variant)', marginBottom: '2rem' }}>
                                         <strong style={{ display: 'block', color: 'var(--on-surface)', marginBottom: '0.5rem' }}>Chief Complaint</strong>
                                         <p style={{ margin: '0 0 1rem 0', color: 'var(--on-surface-variant)' }}>{selectedVisit.vitals?.chief_complaint || 'Not recorded'}</p>

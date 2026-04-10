@@ -19,7 +19,6 @@ const PatientRecords = () => {
         clinicalNotes: ''
     });
 
-    // Profile Edit State
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [editForm, setEditForm] = useState({
         name: '', age: 0, gender: '', national_id: '',
@@ -30,8 +29,6 @@ const PatientRecords = () => {
 
     const fetchPatientData = async () => {
         try {
-            // First we try to search by ID directly. In a real app we'd have a specific GET /patients/{id}
-            // For now, search and filter.
             const res = await fetch(`http://localhost:8000/patients/search?q=`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -59,7 +56,6 @@ const PatientRecords = () => {
         setIsLoading(true);
         fetchPatientData();
 
-        // LocalStorage fallback for visit data (keeping original behavior)
         const visits = JSON.parse(localStorage.getItem('healthcare_visits') || '{}');
         if (visits[id || '']) {
             setVisit(visits[id || '']);
@@ -118,7 +114,6 @@ const PatientRecords = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    {/* View Mode */}
                     {!isEditingProfile ? (
                         <>
                             <PatientProfileHeader patient={patient} />
@@ -129,7 +124,6 @@ const PatientRecords = () => {
                             </div>
                         </>
                     ) : (
-                        /* Edit Mode */
                         <div style={{ background: 'var(--surface-container-lowest)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                                 <h3 style={{ color: 'var(--primary)', margin: 0 }}>Edit Patient Profile</h3>
@@ -216,7 +210,6 @@ const PatientRecords = () => {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                    {/* NURSE WORKFLOW */}
                     <div style={{ background: 'var(--surface-container-lowest)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--primary)' }}>
                             <Activity size={24} />
@@ -248,7 +241,6 @@ const PatientRecords = () => {
                         </div>
                     </div>
 
-                    {/* DOCTOR WORKFLOW */}
                     <div style={{ background: 'var(--surface-container-lowest)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--primary)' }}>
                             <Stethoscope size={24} />

@@ -23,7 +23,6 @@
     gap: 2rem;
 }
 
-/* Card */
 .pd-card {
     background: var(--surface-container-lowest);
     padding: 2rem;
@@ -50,7 +49,6 @@
     margin-bottom: 1.5rem;
 }
 
-/* Edit Button */
 .pd-edit-btn {
     display: flex;
     align-items: center;
@@ -58,7 +56,6 @@
     padding: 0.5rem 1rem;
 }
 
-/* Form */
 .pd-form {
     display: flex;
     flex-direction: column;
@@ -107,7 +104,6 @@
     gap: 0.5rem;
 }
 
-/* Emergency Contact Section */
 .pd-emergency-section {
     border-top: 1px solid var(--outline-variant);
     padding-top: 1rem;
@@ -126,7 +122,6 @@
     gap: 1rem;
 }
 
-/* Profile View (Read-Only) */
 .pd-profile-view {
     display: flex;
     flex-direction: column;
@@ -145,7 +140,6 @@
     display: block;
 }
 
-/* Emergency Contact Card */
 .pd-emergency-card {
     background: var(--surface);
     padding: 1rem;
@@ -166,7 +160,6 @@
     justify-content: space-between;
 }
 
-/* Medical Tokens Section */
 .pd-medical-tokens {
     margin-top: 1rem;
     border-top: 1px solid var(--outline-variant);
@@ -214,7 +207,6 @@
     color: var(--on-surface-variant);
 }
 
-/* Appointments */
 .pd-appointments-grid {
     display: grid;
     gap: 1rem;
@@ -274,7 +266,6 @@
     margin-bottom: 0.5rem;
 }
 
-/* Reschedule */
 .pd-reschedule-form {
     display: flex;
     flex-direction: column;
@@ -352,7 +343,6 @@
     background: #fef2f2;
 }
 
-/* History Timeline */
 .pd-history-list {
     display: flex;
     flex-direction: column;
@@ -442,7 +432,6 @@
     margin-bottom: 0.25rem;
 }
 
-/* Next Appointment Banner */
 .pd-next-appointment {
     margin-top: 0.5rem;
     background: #eff6ff;
@@ -471,7 +460,6 @@
     display: block;
 }
 
-/* Billing Summary */
 .pd-billing {
     margin-top: 1rem;
     background: var(--surface-variant);

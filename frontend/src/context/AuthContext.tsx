@@ -16,7 +16,6 @@ export interface User {
 interface AuthContextType {
     user: User | null;
     token: string | null;
-    // Overriding login to accept either the legacy User object, or the new JWT properties
     login: (tokenOrUser: string | User, role?: string) => void;
     logout: () => void;
 }
@@ -24,13 +23,11 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    // Initialize synchronously to prevent Layout/Route flashes on refresh
     const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
     const [user, setUser] = useState<User | null>(() => {
         const storedToken = localStorage.getItem('token');
         const storedRole = localStorage.getItem('role');
         
-        // If a JWT role is stored, but there is no token, clear it out.
         if (storedRole) {
             if (!storedToken) {
                 localStorage.removeItem('role');
@@ -47,12 +44,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
     const navigate = useNavigate();
 
-    // No need for useEffect anymore since state is initialized synchronously
 
 
     const login = (tokenOrUser: string | User, roleParam?: string) => {
         if (typeof tokenOrUser === 'string') {
-            // New JWT Login flow
             const newToken = tokenOrUser;
             const newRole = roleParam || '';
             localStorage.setItem('token', newToken);
@@ -60,14 +55,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setToken(newToken);
             setUser({ username: 'user', role: newRole });
 
-            // Only force navigation if they logged in manually
             setTimeout(() => {
                 if (newRole === 'nurse') navigate('/nurse/dashboard');
                 else if (newRole === 'doctor') navigate('/doctor');
                 else if (newRole === 'PATIENT') navigate('/patient');
             }, 0);
         } else {
-            // Legacy Login flow
             setUser(tokenOrUser);
             localStorage.setItem('healthcare_current_user', JSON.stringify(tokenOrUser));
             navigate('/');

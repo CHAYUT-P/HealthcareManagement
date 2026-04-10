@@ -207,9 +207,7 @@ export const DoctorDashboard: React.FC = () => {
 
             {activeTab === 'consultation' && currentData && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 2fr)', gap: '2rem' }}>
-                    {/* Left Column: Read-Only Triage & Medical Context */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                        {/* Patient Profile Context */}
                         <section style={{ background: 'var(--surface-container-lowest)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderTop: '4px solid var(--primary)' }}>
                             <h2 style={{ marginBottom: '1.5rem', color: 'var(--primary)', borderBottom: '1px solid var(--outline-variant)', paddingBottom: '0.5rem' }}>General Information</h2>
                             <div style={{ display: 'grid', gap: '1rem' }}>
@@ -228,7 +226,6 @@ export const DoctorDashboard: React.FC = () => {
                             </div>
                         </section>
 
-                        {/* Reason for Visit & Vitals Context */}
                         <section style={{ background: 'var(--surface-container-lowest)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                             <h2 style={{ marginBottom: '1.5rem', color: 'var(--on-surface)', borderBottom: '1px solid var(--outline-variant)', paddingBottom: '0.5rem' }}>Nurse Triage Data</h2>
 
@@ -266,7 +263,6 @@ export const DoctorDashboard: React.FC = () => {
                         </section>
                     </div>
 
-                    {/* Right Column: Active Diagnostic and Notes Input */}
                     <div style={{ background: 'var(--surface-container-lowest)', padding: '3rem 2rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                         <h2 style={{ marginBottom: '0.5rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                             <FileText size={28} /> Consultation Notes

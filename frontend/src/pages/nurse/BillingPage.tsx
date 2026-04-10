@@ -8,10 +8,8 @@ export const BillingPage: React.FC = () => {
     const [selectedVisit, setSelectedVisit] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     
-    // Map of item_id resolving to its unit_price currently typed by Nurse
     const [prices, setPrices] = useState<Record<number, string>>({});
     
-    // Additional generic treatment fee for consultation
     const [treatmentFee, setTreatmentFee] = useState<string>('0');
 
     const fetchQueue = async () => {
@@ -35,7 +33,6 @@ export const BillingPage: React.FC = () => {
         fetchQueue();
     }, []);
 
-    // Calculate totals dynamically
     const medSubtotal = selectedVisit?.items?.reduce((sum: number, item: any) => {
         const p = parseFloat(prices[item.item_id]) || 0;
         return sum + (p * item.quantity);
@@ -46,7 +43,6 @@ export const BillingPage: React.FC = () => {
     const finalizeBilling = async () => {
         if (!selectedVisit) return;
         
-        // Final format expected by backend: [{"item_id": int, "unit_price": float}], treatment_fee
         const payload = {
             treatment_fee: parseFloat(treatmentFee) || 0,
             items: Object.keys(prices).map(id => ({
@@ -86,7 +82,6 @@ export const BillingPage: React.FC = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 2.5fr)', gap: '2rem' }}>
                 
-                {/* Left side: Queue of PENDING_PAYMENT patients */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     {queue.length === 0 ? (
                         <div style={{ padding: '3rem 2rem', background: 'var(--surface-variant)', borderRadius: 'var(--radius-xl)', textAlign: 'center', color: 'var(--on-surface-variant)' }}>
@@ -100,7 +95,6 @@ export const BillingPage: React.FC = () => {
                                 key={v.visit_id} 
                                 onClick={() => {
                                     setSelectedVisit(v);
-                                    // Reset prices when switching
                                     setPrices({});
                                     setTreatmentFee('0');
                                 }}
@@ -123,7 +117,6 @@ export const BillingPage: React.FC = () => {
                     )}
                 </div>
 
-                {/* Right side: Detailed Billing Form */}
                 {selectedVisit ? (
                     <div style={{ background: 'var(--surface-container-lowest)', padding: '2.5rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--outline-variant)' }}>
                         <div style={{ borderBottom: '1px solid var(--outline-variant)', paddingBottom: '1.5rem', marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

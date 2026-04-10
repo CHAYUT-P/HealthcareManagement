@@ -55,14 +55,12 @@ def add_consultation(
     if not visit or visit.assigned_doctor_id != current_user.id:
         raise HTTPException(status_code=404, detail="Visit not found or not assigned to you")
     
-    # Extract and remove follow-up fields from note_data
     note_data = note_in.dict(exclude={"prescription_items", "follow_up_date", "follow_up_time", "follow_up_note"})
     note = ClinicalNote(visit_id=visit_id, **note_data)
     session.add(note)
     visit.status = "PENDING_PAYMENT"
     session.add(visit)
     
-    # Process structured prescription items
     if note_in.prescription_items and len(note_in.prescription_items) > 0:
         rx = Prescription(visit_id=visit_id)
         session.add(rx)
@@ -78,7 +76,6 @@ def add_consultation(
             )
             session.add(rx_item)
             
-    # Process follow-up appointment
     if note_in.follow_up_date and note_in.follow_up_time:
         from models import Appointment
         appt = Appointment(

@@ -63,7 +63,6 @@ export const AppointmentsPage: React.FC<{ onProcessCheckIn?: (nationalId: string
         const matchesDate = dateFilter ? a.date === dateFilter : true;
         return matchesSearch && matchesDate;
     }).sort((a, b) => {
-        // Fallback for sorting if time/date is missing
         const aTime = a.date && a.time ? new Date(`${a.date}T${a.time}`).getTime() : 0;
         const bTime = b.date && b.time ? new Date(`${b.date}T${b.time}`).getTime() : 0;
         return sortAsc ? aTime - bTime : bTime - aTime;

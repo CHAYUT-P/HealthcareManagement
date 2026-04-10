@@ -20,12 +20,10 @@ class UserResponse(BaseModel):
 
 @router.get("/users", response_model=List[UserResponse])
 def get_users(search: Optional[str] = None, session: Session = Depends(get_session), current_user: User = Depends(require_role(["ADMIN"]))):
-    # Fetch all users
     users = session.exec(select(User)).all()
     results = []
     
     for u in users:
-        # Check if they have a patient record for name/email
         patient = None
         if u.national_id:
             patient = session.exec(select(Patient).where(Patient.national_id == u.national_id)).first()
@@ -42,7 +40,6 @@ def get_users(search: Optional[str] = None, session: Session = Depends(get_sessi
             if patient.email:
                 email = patient.email
         
-        # apply search filter
         search_target = f"{firstName} {lastName} {email} {u.username}".lower()
         if search and search.lower() not in search_target:
             continue

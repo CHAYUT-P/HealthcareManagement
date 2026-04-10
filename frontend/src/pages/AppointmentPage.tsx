@@ -49,7 +49,6 @@ const AppointmentPage = () => {
         .then(res => res.json())
         .then(data => {
             setDoctors(data);
-            // If the currently selected doctor is no longer available in the new timeslot, clear the selection
             if (formData.doctorId) {
                 const doc = data.find((d: any) => d.id === Number(formData.doctorId));
                 if (doc && !doc.is_available) {
