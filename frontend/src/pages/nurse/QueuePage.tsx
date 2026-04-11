@@ -18,6 +18,7 @@ export const QueuePage: React.FC = () => {
         height: '', chief_complaint: '', notes: ''
     });
     const [selectedDoctorId, setSelectedDoctorId] = useState<string>('');
+    const [currentTriageLevel, setCurrentTriageLevel] = useState<string>('Green');
 
     useEffect(() => {
         if (token) {
@@ -82,6 +83,7 @@ export const QueuePage: React.FC = () => {
                 respiratory_rate: '', oxygen_saturation: '', weight: '',
                 height: '', chief_complaint: '', notes: ''
             });
+            setCurrentTriageLevel(visit.triage_level || 'Green');
         }
     };
 
@@ -108,6 +110,7 @@ export const QueuePage: React.FC = () => {
                 weight: parseFloat(triageForm.weight),
                 height: parseFloat(triageForm.height),
                 chief_complaint: triageForm.chief_complaint,
+                triage_level: currentTriageLevel
             };
             const res = await fetch(`http://localhost:8000/nurse/visits/${visitId}/vitals`, {
                 method: 'POST',
@@ -292,6 +295,18 @@ export const QueuePage: React.FC = () => {
                                         <div>
                                             <label style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', display: 'block', marginBottom: '0.25rem' }}>Chief Complaint <span style={{ color: 'var(--destructive)' }}>*</span></label>
                                             <textarea value={triageForm.chief_complaint} onChange={e => setTriageForm({ ...triageForm, chief_complaint: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)', resize: 'vertical' }} rows={2} required></textarea>
+                                        </div>
+
+                                        <div style={{ marginBottom: '1rem', marginTop: '0.5rem', background: 'var(--surface-variant)', padding: '1.5rem', borderRadius: 'var(--radius-lg)' }}>
+                                            <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: 'var(--on-surface)', marginBottom: '0.5rem' }}>Update Triage Urgency Level (Leave unselected for Normal)</label>
+                                            <div style={{ display: 'flex', gap: '1rem' }}>
+                                                <button onClick={() => setCurrentTriageLevel(currentTriageLevel === 'Red' ? 'Green' : 'Red')} style={{ flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-md)', border: `2px solid ${currentTriageLevel === 'Red' ? '#dc2626' : 'var(--outline-variant)'}`, background: currentTriageLevel === 'Red' ? '#fef2f2' : 'var(--surface)', color: currentTriageLevel === 'Red' ? '#dc2626' : 'var(--on-surface-variant)', fontWeight: 600, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', transition: 'all 0.2s ease', opacity: currentTriageLevel === 'Yellow' ? 0.5 : 1 }}>
+                                                    {currentTriageLevel === 'Red' ? '🔴 EMERGENCY SELECTED' : '🔴 Mark as Emergency'}
+                                                </button>
+                                                <button onClick={() => setCurrentTriageLevel(currentTriageLevel === 'Yellow' ? 'Green' : 'Yellow')} style={{ flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-md)', border: `2px solid ${currentTriageLevel === 'Yellow' ? '#f59e0b' : 'var(--outline-variant)'}`, background: currentTriageLevel === 'Yellow' ? '#fffbeb' : 'var(--surface)', color: currentTriageLevel === 'Yellow' ? '#b45309' : 'var(--on-surface-variant)', fontWeight: 600, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', transition: 'all 0.2s ease', opacity: currentTriageLevel === 'Red' ? 0.5 : 1 }}>
+                                                    {currentTriageLevel === 'Yellow' ? '🟡 URGENT SELECTED' : '🟡 Mark as Urgent'}
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <button onClick={() => submitTriage(selectedVisit.id)} className="btn-primary" style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '0.5rem', padding: '1rem', fontSize: '1.1rem', borderRadius: 'var(--radius-lg)' }}>

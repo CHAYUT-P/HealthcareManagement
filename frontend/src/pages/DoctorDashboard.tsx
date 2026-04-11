@@ -210,6 +210,7 @@ export const DoctorDashboard: React.FC = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                         <section style={{ background: 'var(--surface-container-lowest)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderTop: '4px solid var(--primary)' }}>
                             <h2 style={{ marginBottom: '1.5rem', color: 'var(--primary)', borderBottom: '1px solid var(--outline-variant)', paddingBottom: '0.5rem' }}>General Information</h2>
+                            <div style={{ display: 'grid', gap: '1rem' }}>
                                 <div>
                                     <strong style={{ color: 'var(--on-surface-variant)' }}>Name:</strong> 
                                     <span style={{ fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>

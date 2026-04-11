@@ -10,6 +10,7 @@ export interface User {
     email?: string;
     phone?: string;
     status?: string;
+    national_id?: string;
     role: string | 'nurse' | 'doctor' | 'ADMIN' | 'PATIENT' | 'NURSE' | 'DOCTOR';
 }
 
