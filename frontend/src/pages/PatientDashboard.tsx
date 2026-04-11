@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { User, Calendar, Edit3, X, Save, Activity } from 'lucide-react';
+import { PatientModel } from '../models/PatientModel';
 import './PatientDashboard.css';
 
 const PatientDashboard = () => {
     const { user, token } = useAuth();
-    const [patientInfo, setPatientInfo] = useState<any>(null);
+    const [patientInfo, setPatientInfo] = useState<PatientModel | null>(null);
     const [appointments, setAppointments] = useState<any[]>([]);
     const [history, setHistory] = useState<any[]>([]);
 
@@ -38,9 +39,13 @@ const PatientDashboard = () => {
             const pRes = await fetch('http://localhost:8000/patients/me', { headers: { Authorization: `Bearer ${token}` } });
             if (pRes.ok) {
                 const pData = await pRes.json();
-                setPatientInfo(pData);
+                
+                // Hydrate JSON into Object-Oriented Frontend Class Instance
+                const patientInstance = new PatientModel(pData);
+                setPatientInfo(patientInstance);
+                
                 setEditForm({
-                    name: pData.name || '',
+                    name: patientInstance.name || '',
                     gender: pData.gender || '',
                     email: pData.email || '',
                     contact_info: pData.contact_info || '',
@@ -90,7 +95,7 @@ const PatientDashboard = () => {
             });
             if (res.ok) {
                 const updated = await res.json();
-                setPatientInfo(updated);
+                setPatientInfo(new PatientModel(updated));
                 setIsEditing(false);
             }
         } catch (e) { console.error(e); }

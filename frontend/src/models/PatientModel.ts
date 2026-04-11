@@ -37,12 +37,10 @@ export class PatientModel {
     this.emergency_contact_phone = data.emergency_contact_phone;
   }
 
-  // Object-Oriented Method: same as get_age_display() in Python backend
   getAgeDisplay(): string {
     return `${this.age} years old`;
   }
 
-  // Object-Oriented Method: same as has_allergies() in Python backend
   hasAllergies(): boolean {
     if (!this.known_allergies) {
       return false;
