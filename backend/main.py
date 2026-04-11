@@ -28,31 +28,31 @@ async def lifespan(app: FastAPI):
             # Create 5 Unique Patients
             patients_data = [
                 {
-                    "name": "Sarah Jenkins", "age": 28, "gender": "Female", "contact_info": "555-0101", "email": "sarah.j@example.com",
+                    "name": "Sarah Jenkins", "age": 28, "gender": "Female", "contact_info": "555-0101", "email": "patient1@example.com",
                     "national_id": "1-0000-00000-01-1", "hn": "HN-2026-0001", "blood_type": "O+", 
                     "known_allergies": "Penicillin", "chronic_diseases": "None", "address": "123 Maple Street",
                     "emergency_name": "Tom Jenkins", "emergency_phone": "555-0102"
                 },
                 {
-                    "name": "David Chen", "age": 45, "gender": "Male", "contact_info": "555-0201", "email": "david.c@example.com",
+                    "name": "David Chen", "age": 45, "gender": "Male", "contact_info": "555-0201", "email": "patient2@example.com",
                     "national_id": "1-0000-00000-02-1", "hn": "HN-2026-0002", "blood_type": "A-", 
                     "known_allergies": "Peanuts, Shellfish", "chronic_diseases": "Type 2 Diabetes", "address": "456 Oak Avenue",
                     "emergency_name": "Linda Chen", "emergency_phone": "555-0202"
                 },
                 {
-                    "name": "Maria Garcia", "age": 62, "gender": "Female", "contact_info": "555-0301", "email": "maria.g@example.com",
+                    "name": "Maria Garcia", "age": 62, "gender": "Female", "contact_info": "555-0301", "email": "patient3@example.com",
                     "national_id": "1-0000-00000-03-1", "hn": "HN-2026-0003", "blood_type": "B+", 
                     "known_allergies": "None", "chronic_diseases": "Hypertension", "address": "789 Pine Road",
                     "emergency_name": "Carlos Garcia", "emergency_phone": "555-0302"
                 },
                 {
-                    "name": "James Wilson", "age": 19, "gender": "Male", "contact_info": "555-0401", "email": "james.w@example.com",
+                    "name": "James Wilson", "age": 19, "gender": "Male", "contact_info": "555-0401", "email": "patient4@example.com",
                     "national_id": "1-0000-00000-04-1", "hn": "HN-2026-0004", "blood_type": "AB+", 
                     "known_allergies": "Latex", "chronic_diseases": "Asthma", "address": "321 Elm Street",
                     "emergency_name": "Robert Wilson", "emergency_phone": "555-0402"
                 },
                 {
-                    "name": "Emily Brown", "age": 34, "gender": "Female", "contact_info": "555-0501", "email": "emily.b@example.com",
+                    "name": "Emily Brown", "age": 34, "gender": "Female", "contact_info": "555-0501", "email": "patient5@example.com",
                     "national_id": "1-0000-00000-05-1", "hn": "HN-2026-0005", "blood_type": "O-", 
                     "known_allergies": "Sulfa Drugs", "chronic_diseases": "None", "address": "654 Birch Lane",
                     "emergency_name": "Michael Brown", "emergency_phone": "555-0502"

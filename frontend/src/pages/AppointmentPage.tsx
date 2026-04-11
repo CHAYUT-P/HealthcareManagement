@@ -60,17 +60,28 @@ const AppointmentPage = () => {
   }, [formData.date, formData.time]);
   
   useEffect(() => {
-    if (user) {
-      setFormData(prev => ({
-        ...prev,
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        nationalId: user.national_id || '',
-        email: user.email || '',
-        phone: user.phone || ''
-      }));
+    if (user && token) {
+      fetch('http://localhost:8000/patients/me', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      .then(res => {
+        if (res.ok) return res.json();
+        throw new Error("Cannot fetch patient details");
+      })
+      .then(data => {
+        const [first, ...rest] = (data.name || '').split(' ');
+        setFormData(prev => ({
+          ...prev,
+          firstName: first || '',
+          lastName: rest.join(' ') || '',
+          nationalId: data.national_id || '',
+          email: data.email || '',
+          phone: data.contact_info || ''
+        }));
+      })
+      .catch(console.error);
     }
-  }, [user]);
+  }, [user, token]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;

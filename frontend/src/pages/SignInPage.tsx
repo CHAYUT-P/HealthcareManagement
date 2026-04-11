@@ -3,6 +3,7 @@ import { Mail, Lock, Eye, EyeOff, UserPlus, ArrowRight, CheckCircle2, Phone } fr
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../utils/ApiClient';
 import './SignInPage.css';
 
 const SignInPage = () => {
@@ -44,22 +45,13 @@ const SignInPage = () => {
       setIsLoading(true);
 
       try {
-        const response = await fetch('http://localhost:8000/patients/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            national_id: formData.citizenId,
-            password: formData.password,
-            name: formData.fullName || 'Patient',
-            email: formData.email,
-          })
+        await api.post('/patients/register', {
+          national_id: formData.citizenId,
+          password: formData.password,
+          name: formData.fullName || 'Patient',
+          email: formData.email,
         });
-        if (!response.ok) {
-          const err = await response.json();
-          setErrorMsg(err.detail || "Registration failed");
-          setIsLoading(false);
-          return;
-        }
+        
         setIsLoading(false);
         setIsSuccess(true);
       } catch (e: any) {
@@ -169,7 +161,7 @@ const SignInPage = () => {
                     </div>
                   </div>
                   <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                    <label htmlFor="citizenId">National ID (บัตรประชาชน)</label>
+                    <label htmlFor="citizenId">National ID</label>
                     <div className="input-wrapper">
                       <Mail className="input-icon" size={18} />
                       <input
